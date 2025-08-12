@@ -1,4 +1,4 @@
-FROM gradle:8.9-jdk21-alpine AS build
+FROM gradle:8.9-jdk17-alpine AS build
 WORKDIR /home/gradle/src
 COPY --chown=gradle:gradle . .
 RUN gradle build --no-daemon
