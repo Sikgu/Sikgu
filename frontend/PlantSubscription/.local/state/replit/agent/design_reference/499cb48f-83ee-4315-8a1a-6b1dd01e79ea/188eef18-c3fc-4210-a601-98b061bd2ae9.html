@@ -1,0 +1,487 @@
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>식구 - 식물 구독 서비스</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    'korean': ['Noto Sans KR', 'sans-serif'],
+                },
+                colors: {
+                    'forest': '#2D5016',
+                    'olive': '#6B8E23',
+                    'light-green': '#90EE90',
+                    'bg-soft': '#FAFAFA',
+                }
+            }
+        }
+    };
+    </script>
+</head>
+<body class="font-korean bg-bg-soft text-gray-800">
+    <!-- @COMPONENT: Header [Navigation with logo, menu items, and login button] -->
+    <header class="bg-white shadow-sm border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <h1 class="text-2xl font-bold text-forest">식구</h1>
+                </div>
+                
+                <!-- Navigation Menu -->
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#" class="text-gray-700 hover:text-forest transition-colors duration-200 font-medium">구독</a>
+                    <a href="#" class="text-gray-700 hover:text-forest transition-colors duration-200 font-medium">작동방식</a>
+                </nav>
+                
+                <!-- Right side buttons -->
+                <div class="flex items-center space-x-4">
+                    <button class="bg-forest text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition-all duration-200 font-medium">
+                        로그인
+                    </button>
+                    <button class="relative p-2 text-gray-700 hover:text-forest transition-colors duration-200">
+                        <i class="fas fa-shopping-cart text-xl"></i>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">2</span>
+                    </button>
+                </div>
+                
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button class="text-gray-700 hover:text-forest">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <!-- @COMPONENT: Hero Section [Main banner with plants and call-to-action] -->
+    <section class="bg-white py-16 lg:py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="lg:grid lg:grid-cols-2 lg:gap-12 items-center">
+                <div class="text-center lg:text-left mb-8 lg:mb-0">
+                    <h2 class="text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+                        Find Your Plant Match
+                    </h2>
+                    <p class="text-xl text-gray-600 mb-8 leading-relaxed">
+                        당신의 공간에 완벽한 식물을 찾아보세요. 전문가가 선별한 프리미엄 식물들로 당신의 일상을 더욱 특별하게 만들어드립니다.
+                    </p>
+                </div>
+                <div class="relative">
+                    <!-- Multiple plants showcase with modern grid layout -->
+                    <div class="grid grid-cols-2 gap-4 lg:gap-6">
+                        <!-- A large monstera deliciosa in white ceramic pot -->
+                        <div class="col-span-2 lg:col-span-1">
+                            <img src="https://images.unsplash.com/photo-1512428813834-c702c7702b78?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600" 
+                                 alt="Monstera deliciosa in white pot" 
+                                 class="w-full h-64 object-cover rounded-2xl shadow-lg" />
+                        </div>
+                        <!-- A collection of small succulents and houseplants -->
+                        <div>
+                            <img src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
+                                 alt="Small potted succulents" 
+                                 class="w-full h-32 object-cover rounded-2xl shadow-lg mb-4" />
+                            <img src="https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
+                                 alt="Small houseplant in decorative pot" 
+                                 class="w-full h-32 object-cover rounded-2xl shadow-lg" />
+                        </div>
+                        <!-- A snake plant in modern pot -->
+                        <div>
+                            <img src="https://pixabay.com/get/ge553ce5bac61d078f035bcc9910c9d8b785d67bb6d70f60c8271469c89690511d7d0c52a153a71a77451a4c0cec99c59ed32cf4e5b9450edbfafbefe0e4474ee_1280.jpg" 
+                                 alt="Snake plant in modern pot" 
+                                 class="w-full h-72 object-cover rounded-2xl shadow-lg" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Hero Section -->
+
+    <!-- @COMPONENT: Plants Gallery [Showcase of individual plants available] -->
+    <section class="py-16 bg-bg-soft">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h3 class="text-3xl font-bold text-gray-900 text-center mb-12">Explore Our Plants</h3>
+            
+            <!-- @MAP: plants.map(plant => ( -->
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
+                <!-- Individual Plant Cards -->
+                <div class="bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+                    <!-- A beautiful jade pothos in terra cotta pot -->
+                    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400" 
+                         alt="Jade Pothos plant" 
+                         class="w-full h-48 object-cover" />
+                    <div class="p-4">
+                        <h4 class="font-semibold text-gray-900 mb-2">Jade Pothos</h4>
+                        <p class="text-lg font-bold text-forest">46,000원</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+                    <!-- A bird's nest fern in white pot -->
+                    <img src="https://images.unsplash.com/photo-1545558014-8692077e9b5c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400" 
+                         alt="Bird's Nest Fern" 
+                         class="w-full h-48 object-cover" />
+                    <div class="p-4">
+                        <h4 class="font-semibold text-gray-900 mb-2">Bird's Nest Fern</h4>
+                        <p class="text-lg font-bold text-forest">43,000원</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+                    <!-- A fiddle leaf fig in modern planter -->
+                    <img src="https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400" 
+                         alt="Fiddle Leaf Fig" 
+                         class="w-full h-48 object-cover" />
+                    <div class="p-4">
+                        <h4 class="font-semibold text-gray-900 mb-2">Fiddle Leaf Fig</h4>
+                        <p class="text-lg font-bold text-forest">89,000원</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+                    <!-- A rubber plant in ceramic pot -->
+                    <img src="https://pixabay.com/get/g159b389cde3b23674516b79e6203d4bc032f95adb8eb314c24e5fcfdb240b7310572473c7a8ec1c3f4c3721f52fd42108c799b6c453e1bbeb38e550c95efbb39_1280.jpg" 
+                         alt="Rubber Plant" 
+                         class="w-full h-48 object-cover" />
+                    <div class="p-4">
+                        <h4 class="font-semibold text-gray-900 mb-2">Rubber Plant</h4>
+                        <p class="text-lg font-bold text-forest">65,000원</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+                    <!-- A peace lily in white pot -->
+                    <img src="https://images.unsplash.com/photo-1485955900006-10f4d324d411?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400" 
+                         alt="Peace Lily" 
+                         class="w-full h-48 object-cover" />
+                    <div class="p-4">
+                        <h4 class="font-semibold text-gray-900 mb-2">Peace Lily</h4>
+                        <p class="text-lg font-bold text-forest">52,000원</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+                    <!-- A snake plant in modern black pot -->
+                    <img src="https://pixabay.com/get/gc5792ace0009505c6664b4debabe43a23a10962c87fbd8d08cb1c0afb9c09aa0025d289499dd87943a19ce009a03ff887ca0779513c079635a389552948922d8_1280.jpg" 
+                         alt="Snake Plant" 
+                         class="w-full h-48 object-cover" />
+                    <div class="p-4">
+                        <h4 class="font-semibold text-gray-900 mb-2">Snake Plant</h4>
+                        <p class="text-lg font-bold text-forest">38,000원</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+                    <!-- A monstera plant in white ceramic pot -->
+                    <img src="https://pixabay.com/get/g2b480e839fc180ad684ad81383a0b35a613668b42bc3824fba4dd35e4a4ddab662b3667542f8e418b5c597dfbd3b51ea5820bcb1816f003b81dafd9c58a51309_1280.jpg" 
+                         alt="Monstera Plant" 
+                         class="w-full h-48 object-cover" />
+                    <div class="p-4">
+                        <h4 class="font-semibold text-gray-900 mb-2">Monstera</h4>
+                        <p class="text-lg font-bold text-forest">75,000원</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+                    <!-- A ZZ plant in decorative pot -->
+                    <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400" 
+                         alt="ZZ Plant" 
+                         class="w-full h-48 object-cover" />
+                    <div class="p-4">
+                        <h4 class="font-semibold text-gray-900 mb-2">ZZ Plant</h4>
+                        <p class="text-lg font-bold text-forest">58,000원</p>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_MAP )) -->
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Plants Gallery -->
+
+    <!-- @COMPONENT: Subscription Plans [Coin-based pricing options] -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h3 class="text-3xl font-bold text-gray-900 text-center mb-12">Choose Your Subscription</h3>
+            
+            <div class="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                <!-- 1 Coin Plan -->
+                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-8 text-center border border-green-200 hover:shadow-lg transition-shadow duration-300">
+                    <!-- A small potted plant representing 1 coin -->
+                    <img src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200" 
+                         alt="Small plant representing 1 coin plan" 
+                         class="w-16 h-16 object-cover rounded-full mx-auto mb-4" />
+                    <h4 class="text-xl font-bold text-gray-900 mb-2">1코인</h4>
+                    <p class="text-gray-600 mb-4">소형 식물</p>
+                    <p class="text-3xl font-bold text-forest mb-6">4,900원</p>
+                    <button class="w-full bg-forest text-white py-3 rounded-lg hover:bg-opacity-90 transition-all duration-200 font-medium">
+                        선택하기
+                    </button>
+                </div>
+
+                <!-- 2 Coin Plan -->
+                <div class="bg-gradient-to-br from-green-100 to-green-200 rounded-2xl p-8 text-center border border-green-300 hover:shadow-lg transition-shadow duration-300 transform scale-105">
+                    <!-- A medium potted plant representing 2 coins -->
+                    <img src="https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200" 
+                         alt="Medium plant representing 2 coin plan" 
+                         class="w-16 h-16 object-cover rounded-full mx-auto mb-4" />
+                    <h4 class="text-xl font-bold text-gray-900 mb-2">2코인</h4>
+                    <p class="text-gray-600 mb-4">중형 식물</p>
+                    <p class="text-3xl font-bold text-forest mb-6">9,900원</p>
+                    <button class="w-full bg-forest text-white py-3 rounded-lg hover:bg-opacity-90 transition-all duration-200 font-medium">
+                        선택하기
+                    </button>
+                    <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                        인기
+                    </div>
+                </div>
+
+                <!-- 5 Coin Plan -->
+                <div class="bg-gradient-to-br from-green-200 to-green-300 rounded-2xl p-8 text-center border border-green-400 hover:shadow-lg transition-shadow duration-300">
+                    <!-- A large potted plant representing 5 coins -->
+                    <img src="https://images.unsplash.com/photo-1512428813834-c702c7702b78?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200" 
+                         alt="Large plant representing 5 coin plan" 
+                         class="w-16 h-16 object-cover rounded-full mx-auto mb-4" />
+                    <h4 class="text-xl font-bold text-gray-900 mb-2">5코인</h4>
+                    <p class="text-gray-600 mb-4">대형 식물</p>
+                    <p class="text-3xl font-bold text-forest mb-6">22,900원</p>
+                    <button class="w-full bg-forest text-white py-3 rounded-lg hover:bg-opacity-90 transition-all duration-200 font-medium">
+                        선택하기
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Subscription Plans -->
+
+    <!-- @COMPONENT: Review Section [User reviews and plant care tips] -->
+    <section class="py-16 bg-bg-soft">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h3 class="text-3xl font-bold text-gray-900 text-center mb-12">Review</h3>
+            
+            <div class="grid lg:grid-cols-2 gap-12">
+                <!-- User Reviews -->
+                <div>
+                    <div class="flex items-center mb-8">
+                        <i class="fas fa-star text-yellow-400 text-xl mr-2"></i>
+                        <h4 class="text-2xl font-bold text-gray-900">사용자 후기</h4>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <!-- Review 1 -->
+                        <div class="bg-white p-6 rounded-2xl shadow-md">
+                            <div class="flex items-center mb-4">
+                                <div class="flex text-yellow-400 mr-3">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <span class="font-semibold text-gray-900">김민정</span>
+                            </div>
+                            <p class="text-gray-600 leading-relaxed">
+                                "처음 식물을 키우는 저에게 너무 친절하게 설명해주시고, 식물도 정말 건강하게 잘 자라고 있어요. 매달 새로운 식물을 받는 재미가 쏠쏠합니다!"
+                            </p>
+                        </div>
+
+                        <!-- Review 2 -->
+                        <div class="bg-white p-6 rounded-2xl shadow-md">
+                            <div class="flex items-center mb-4">
+                                <div class="flex text-yellow-400 mr-3">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <span class="font-semibold text-gray-900">박서준</span>
+                            </div>
+                            <p class="text-gray-600 leading-relaxed">
+                                "사무실에 놓을 식물을 찾고 있었는데, 추천해주신 식물들이 모두 공기정화에도 좋고 관리하기도 쉬워서 동료들이 다들 좋아해요."
+                            </p>
+                        </div>
+
+                        <!-- Review 3 -->
+                        <div class="bg-white p-6 rounded-2xl shadow-md">
+                            <div class="flex items-center mb-4">
+                                <div class="flex text-yellow-400 mr-3">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <span class="font-semibold text-gray-900">이하늘</span>
+                            </div>
+                            <p class="text-gray-600 leading-relaxed">
+                                "식물 케어 팁이 정말 유용해요. 물주기 알림도 보내주시고, 궁금한 건 언제든 문의할 수 있어서 안심이 됩니다."
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Plant Care Tips -->
+                <div>
+                    <div class="flex items-center mb-8">
+                        <i class="fas fa-leaf text-forest text-xl mr-2"></i>
+                        <h4 class="text-2xl font-bold text-gray-900">식물별 팁</h4>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <!-- Tip 1 -->
+                        <div class="bg-white p-6 rounded-2xl shadow-md border-l-4 border-forest">
+                            <h5 class="font-bold text-gray-900 mb-3 text-lg">몬스테라 관리법</h5>
+                            <p class="text-gray-600 leading-relaxed mb-3">
+                                밝은 간접광을 좋아하며, 주 1-2회 물을 주세요. 잎에 분무기로 습도를 유지해주면 더욱 건강하게 자랍니다.
+                            </p>
+                            <div class="flex items-center text-sm text-forest">
+                                <i class="fas fa-clock mr-2"></i>
+                                <span>난이도: 초급</span>
+                            </div>
+                        </div>
+
+                        <!-- Tip 2 -->
+                        <div class="bg-white p-6 rounded-2xl shadow-md border-l-4 border-olive">
+                            <h5 class="font-bold text-gray-900 mb-3 text-lg">스네이크 플랜트</h5>
+                            <p class="text-gray-600 leading-relaxed mb-3">
+                                매우 강한 식물로 초보자에게 추천! 2-3주에 한 번만 물을 주면 되고, 어두운 곳에서도 잘 자랍니다.
+                            </p>
+                            <div class="flex items-center text-sm text-olive">
+                                <i class="fas fa-seedling mr-2"></i>
+                                <span>공기정화 우수</span>
+                            </div>
+                        </div>
+
+                        <!-- Tip 3 -->
+                        <div class="bg-white p-6 rounded-2xl shadow-md border-l-4 border-green-400">
+                            <h5 class="font-bold text-gray-900 mb-3 text-lg">고무나무 케어</h5>
+                            <p class="text-gray-600 leading-relaxed mb-3">
+                                광택이 나는 큰 잎이 특징인 고무나무는 밝은 빛을 좋아해요. 잎에 먼지가 쌓이지 않도록 가끔 닦아주세요.
+                            </p>
+                            <div class="flex items-center text-sm text-green-600">
+                                <i class="fas fa-sun mr-2"></i>
+                                <span>밝은 간접광 선호</span>
+                            </div>
+                        </div>
+
+                        <!-- Tip 4 -->
+                        <div class="bg-white p-6 rounded-2xl shadow-md border-l-4 border-light-green">
+                            <h5 class="font-bold text-gray-900 mb-3 text-lg">일반적인 식물 관리</h5>
+                            <div class="space-y-2 text-gray-600">
+                                <p class="flex items-center">
+                                    <i class="fas fa-tint text-blue-500 mr-3 w-4"></i>
+                                    흙이 마르면 충분히 물주기
+                                </p>
+                                <p class="flex items-center">
+                                    <i class="fas fa-thermometer-half text-red-500 mr-3 w-4"></i>
+                                    실온 18-24도 유지하기
+                                </p>
+                                <p class="flex items-center">
+                                    <i class="fas fa-wind text-gray-500 mr-3 w-4"></i>
+                                    통풍이 잘 되는 곳에 배치
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Review Section -->
+
+    <!-- @COMPONENT: Footer [Social links and contact information] -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <h5 class="text-2xl font-bold mb-4">식구</h5>
+                    <p class="text-gray-400 leading-relaxed">
+                        당신의 공간을 더욱 특별하게 만들어줄 프리미엄 식물 구독 서비스입니다.
+                    </p>
+                </div>
+                
+                <div>
+                    <h6 class="font-semibold mb-4">서비스</h6>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">식물 구독</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">케어 가이드</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">전문가 상담</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h6 class="font-semibold mb-4">팔로우</h6>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-twitter text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-facebook text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-instagram text-xl"></i>
+                        </a>
+                    </div>
+                    <p class="text-gray-400 mt-4">plantfamily.com</p>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 식구. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <!-- @END_COMPONENT: Footer -->
+
+    <script>
+    (function() {
+        // TODO: Implement business logic, API calls, or state management
+        
+        // Simple mobile menu toggle functionality
+        const mobileMenuButton = document.querySelector('.md\\:hidden button');
+        const navigationMenu = document.querySelector('nav');
+        
+        if (mobileMenuButton) {
+            mobileMenuButton.addEventListener('click', function() {
+                // TODO: Implement mobile menu toggle
+                console.log('Mobile menu toggle clicked');
+            });
+        }
+        
+        // Smooth scroll for internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Add to cart functionality placeholders
+        document.querySelectorAll('button').forEach(button => {
+            if (button.textContent.includes('선택하기') || button.textContent.includes('장바구니')) {
+                button.addEventListener('click', function() {
+                    // TODO: Implement add to cart functionality
+                    console.log('Add to cart clicked');
+                });
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
