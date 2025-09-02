@@ -18,12 +18,8 @@ public class Planterior3D extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @Column(columnDefinition = "TEXT")
-    private String modelJson;
+    @Column(name = "plant_modeling_url", length = 512)
+    private String plantModelingURL;
 
     private LocalDateTime createdAt;
 }

@@ -31,4 +31,11 @@ public class Plant extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     private String caution;
+
+    @Column(name = "plant_image_url", length = 512)
+    private String plantImageURL;
+
+    @OneToOne
+    @JoinColumn(name = "planterior3D_id")
+    private Planterior3D planterior3D;
 }
