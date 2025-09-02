@@ -2,6 +2,9 @@ name: Sikgu Spring Boot CI/CD with Gradle
 
 on:
   push:
+     paths:
+      - 'backend/**'
+      - '.github/workflows/ci-cd.yml'
 
 jobs:
   build-and-push:
