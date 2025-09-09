@@ -4,6 +4,14 @@
 현재 계속 수정 중으로 GitHub Issue 템플릿, 그리고 GitHub Actions(CI/CD) 설정 가이드는 추후 수정 예정
 도커 사용 여부에 따라 추가 예정
 
+**`h2`**
+테스트용 db
+http://localhost:8081/h2-console/login.jsp
+
+**`Swagger`** 
+api 스펙 확인 
+http://localhost:8081/swagger-ui/index.html
+
 ---
 
 ## 1. 브랜치 전략
