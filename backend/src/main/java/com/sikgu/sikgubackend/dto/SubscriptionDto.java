@@ -1,11 +1,12 @@
 package com.sikgu.sikgubackend.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
-@AllArgsConstructor
+@Setter
+@NoArgsConstructor
 public class SubscriptionDto {
-    private String status;
-    private String plan;
+    private String newPlan;
 }

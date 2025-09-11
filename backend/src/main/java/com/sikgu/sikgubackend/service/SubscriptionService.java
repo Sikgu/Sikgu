@@ -1,21 +1,18 @@
 package com.sikgu.sikgubackend.service;
 
-import com.sikgu.sikgubackend.dto.SubscriptionDto;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SubscriptionService {
 
-    public boolean changePlan(Long userId, String newPlan) {
-        System.out.println("사용자 " + userId + "의 요금제를 " + newPlan + "(으)로 변경");
-        return true;
+    public String getSubscriptionStatus(Long userId) {
+        // 실제로는 DB에서 구독 정보를 조회합니다.
+        return "구독 상태: 활성";
     }
 
-    public SubscriptionDto getSubscriptionStatus(Long userId) {
-        System.out.println("사용자 " + userId + "의 구독 상태 조회");
-        if (userId == 1L) {
-            return new SubscriptionDto("활성", "기본 요금제");
-        }
-        return new SubscriptionDto("해지", "없음");
+    public boolean changePlan(Long userId, String newPlan) {
+        // 실제로는 DB에서 사용자 요금제 정보를 업데이트합니다.
+        System.out.println("사용자 " + userId + "의 요금제를 " + newPlan + "(으)로 변경");
+        return true;
     }
 }
