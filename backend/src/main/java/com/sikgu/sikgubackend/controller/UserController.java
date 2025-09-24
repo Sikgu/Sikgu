@@ -2,7 +2,10 @@ package com.sikgu.sikgubackend.controller;
 
 import com.sikgu.sikgubackend.dto.UserDto;
 import com.sikgu.sikgubackend.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,25 +18,15 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody UserDto userDto) {
-        if (userService.signup(userDto)) {
-            return ResponseEntity.ok("회원가입이 성공적으로 완료되었습니다.");
-        }
-        return ResponseEntity.badRequest().body("회원가입 실패.");
-    }
+    @Operation(summary = "마이페이지 사용자 정보 조회")
+    @GetMapping("/mypage")
+    public ResponseEntity<UserDto> getMyPage(@AuthenticationPrincipal UserDetails userDetails) {
+        // @AuthenticationPrincipal을 사용해 현재 로그인한 사용자 정보를 가져옵니다.
+        String email = userDetails.getUsername();
 
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody UserDto userDto) {
-        if (userService.login(userDto.getEmail(), userDto.getPassword())) {
-            return ResponseEntity.ok("로그인 성공.");
-        }
-        return ResponseEntity.badRequest().body("로그인 실패. 이메일 또는 비밀번호를 확인해주세요.");
-    }
+        // 사용자 정보를 조회하여 DTO로 변환
+        UserDto userDto = userService.getUserProfile(email);
 
-    @PostMapping("/find-account")
-    public ResponseEntity<String> findAccount(@RequestBody UserDto userDto) {
-        String result = userService.findAccount(userDto.getEmail());
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(userDto);
     }
 }
