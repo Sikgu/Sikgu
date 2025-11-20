@@ -155,10 +155,11 @@ export default function Cart() {
                         </Link>
                         <div className="flex items-center space-x-2 mt-2">
                           <span className="text-lg font-bold text-forest flex items-center gap-1" data-testid={`cart-item-price-${item.plantId}`}>
-                            🌿{item.itemTotal}
+                            <Leaf className="h-5 w-5" />
+                            {item.itemTotal}
                           </span>
                           <span className="text-sm text-gray-500 flex items-center gap-1">
-                            (🌿{item.plantPrice} x {item.quantity})
+                            (<Leaf className="h-4 w-4" />{item.plantPrice} x {item.quantity})
                           </span>
                         </div>
                       </div>
@@ -230,7 +231,8 @@ export default function Cart() {
                     <div className="flex justify-between items-center text-lg font-semibold">
                       <span data-testid="total-price-label">총 금액</span>
                       <span className="text-2xl text-forest flex items-center gap-1" data-testid="total-price-amount">
-                        🌿{totalPrice}
+                        <Leaf className="h-6 w-6" />
+                        {totalPrice}
                       </span>
                     </div>
                   </div>
