@@ -63,11 +63,7 @@ export default function Cart() {
 
   const handleIncreaseQuantity = async (plantId: number) => {
     try {
-      await useCart().addItem(plantId);
-      toast({
-        title: "수량 증가",
-        description: "상품 수량이 증가되었습니다.",
-      });
+      await addItem(plantId);
     } catch (error) {
       toast({
         title: "오류",
