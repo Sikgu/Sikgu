@@ -49,7 +49,11 @@ export default function MyPage() {
 
       try {
         setIsLoading(true);
-        const response = await apiRequest("GET", "/users/mypage");
+        const response = await apiRequest("GET", "/auth/me");
+
+        if (!response.ok) {
+          throw new Error("프로필 정보를 불러올 수 없습니다.");
+        }
 
         const data = await response.json();
         setProfile(data);
@@ -87,10 +91,27 @@ export default function MyPage() {
 
   const handleSave = async () => {
     try {
-      const response = await apiRequest("POST", "/users/info", editForm);
+      const response = await apiRequest("POST", "/users/info", {
+        method: "POST",
+        body: JSON.stringify({
+          address: editForm.address,
+          phoneNumber: editForm.phoneNumber,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("정보 업데이트에 실패했습니다.");
+      }
 
       const updatedData = await response.json();
-      setProfile(updatedData);
+      
+      // 프로필 상태 업데이트
+      setProfile({
+        ...profile!,
+        address: updatedData.address || editForm.address,
+        phoneNumber: updatedData.phoneNumber || editForm.phoneNumber,
+      });
+      
       setIsEditing(false);
       toast({
         title: "저장 완료",
