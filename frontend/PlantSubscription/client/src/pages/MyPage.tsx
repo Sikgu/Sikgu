@@ -49,20 +49,14 @@ export default function MyPage() {
 
       try {
         setIsLoading(true);
-        const response = await apiRequest("/users/mypage", {
-          method: "GET",
-        });
+        const response = await apiRequest("GET", "/users/mypage");
 
-        if (response.ok) {
-          const data = await response.json();
-          setProfile(data);
-          setEditForm({
-            address: data.address || "",
-            phoneNumber: data.phoneNumber || "",
-          });
-        } else {
-          throw new Error("프로필 정보를 가져오는데 실패했습니다.");
-        }
+        const data = await response.json();
+        setProfile(data);
+        setEditForm({
+          address: data.address || "",
+          phoneNumber: data.phoneNumber || "",
+        });
       } catch (error: any) {
         toast({
           title: "오류 발생",
@@ -93,22 +87,15 @@ export default function MyPage() {
 
   const handleSave = async () => {
     try {
-      const response = await apiRequest("/users/info", {
-        method: "POST",
-        body: JSON.stringify(editForm),
-      });
+      const response = await apiRequest("POST", "/users/info", editForm);
 
-      if (response.ok) {
-        const updatedData = await response.json();
-        setProfile(updatedData);
-        setIsEditing(false);
-        toast({
-          title: "저장 완료",
-          description: "사용자 정보가 업데이트되었습니다.",
-        });
-      } else {
-        throw new Error("정보 업데이트에 실패했습니다.");
-      }
+      const updatedData = await response.json();
+      setProfile(updatedData);
+      setIsEditing(false);
+      toast({
+        title: "저장 완료",
+        description: "사용자 정보가 업데이트되었습니다.",
+      });
     } catch (error: any) {
       toast({
         title: "저장 실패",
