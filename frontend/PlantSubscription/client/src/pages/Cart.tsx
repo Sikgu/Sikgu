@@ -11,7 +11,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function Cart() {
-  const { items, itemCount, totalPrice, removeItem, decreaseQuantity, clearCart, isLoading: cartLoading } = useCart();
+  const { items, itemCount, totalPrice, addItem, removeItem, decreaseQuantity, clearCart, isLoading: cartLoading } = useCart();
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
