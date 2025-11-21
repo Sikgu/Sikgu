@@ -41,6 +41,13 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SupportQnA> supportQnAs = new ArrayList<>();
 
+    // 코인 관련 필드 추가 (기존 코드에 없었으므로 추가 필요)
+    private Integer coins;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Cart> carts = new ArrayList<>();
+
+
     @Builder
     public User(String email, String password, Role role) {
         this.email = email;
@@ -62,5 +69,16 @@ public class User extends BaseEntity {
     public void addSupportQnA(SupportQnA supportQnA) {
         this.supportQnAs.add(supportQnA);
         supportQnA.setUser(this);
+    }
+
+    public void addToCart(Cart cart) {
+        this.carts.add(cart);
+    }
+
+    public void addCoins(int amount) {
+        if (this.coins == null) {
+            this.coins = 0;
+        }
+        this.coins += amount;
     }
 }

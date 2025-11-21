@@ -95,9 +95,11 @@ export default function Payment() {
     mutationFn: async (data: { planId: keyof typeof planDetails | null; cardNumber: string; expirationDate: string; cvc: string; cardHolderName: string; }) => {
       return await apiRequest('POST', '/subscriptions', data);
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/subscriptions'] });
+    onSuccess: async (data) => {
+      // 사용자 정보와 구독 정보 새로고침
+      await queryClient.invalidateQueries({ queryKey: ['/auth/me'] });
+      await queryClient.invalidateQueries({ queryKey: ['/subscriptions'] });
+      
       toast({
         title: "결제가 완료되었습니다!",
         description: "코인이 충전되었습니다.",
