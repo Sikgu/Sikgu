@@ -10,12 +10,36 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { Leaf, Edit2, Save, X } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getQueryFn } from "@/lib/queryClient";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface UserProfile {
   id: number;
   email: string;
   address: string | null;
   phoneNumber: string | null;
+  coins: number;
+}
+
+interface Subscription {
+  id: number;
+  planId: string;
+  paidAmount: number;
+  paymentStatus: string;
+  startDate: string;
+  endDate: string | null;
 }
 
 export default function MyPage() {
@@ -28,6 +52,43 @@ export default function MyPage() {
   const [editForm, setEditForm] = useState({
     address: "",
     phoneNumber: "",
+  });
+  const queryClient = useQueryClient();
+
+  // URL에서 tab 파라미터 읽기
+  const params = new URLSearchParams(window.location.search);
+  const initialTab = params.get('tab') || 'profile';
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // 구독 정보 조회
+  const { data: subscriptions } = useQuery<Subscription[]>({
+    queryKey: ['/api/subscriptions'],
+    queryFn: () => getQueryFn()('/api/subscriptions'), // getQueryFn returns a function
+    enabled: isAuthenticated,
+  });
+
+  // 구독 취소 mutation
+  const cancelSubscriptionMutation = useMutation({
+    mutationFn: async (subscriptionId: number) => {
+      return await apiRequest('POST', '/subscriptions/cancellation', {
+        body: JSON.stringify({ subscriptionId }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/subscriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      toast({
+        title: "구독이 취소되었습니다",
+        description: "구독이 성공적으로 취소되었습니다.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "구독 취소 실패",
+        description: error.message || "다시 시도해주세요.",
+        variant: "destructive",
+      });
+    },
   });
 
   // 인증되지 않은 경우 로그인 페이지로 리다이렉트
@@ -104,14 +165,14 @@ export default function MyPage() {
       }
 
       const updatedData = await response.json();
-      
+
       // 프로필 상태 업데이트
       setProfile({
         ...profile!,
         address: updatedData.address || editForm.address,
         phoneNumber: updatedData.phoneNumber || editForm.phoneNumber,
       });
-      
+
       setIsEditing(false);
       toast({
         title: "저장 완료",
@@ -170,82 +231,191 @@ export default function MyPage() {
           </CardHeader>
 
           <CardContent className="pt-8">
-            <div className="space-y-6">
-              {/* 이메일 (수정 불가) */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">
-                  이메일
-                </Label>
-                <Input
-                  type="email"
-                  value={profile.email}
-                  disabled
-                  className="bg-gray-50"
-                />
-                <p className="text-xs text-gray-500">이메일은 변경할 수 없습니다.</p>
-              </div>
+            <Tabs value={activeTab} onValueChange={(value) => {
+              setActiveTab(value);
+              setLocation(`?tab=${value}`);
+            }} className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="profile">프로필 정보</TabsTrigger>
+                <TabsTrigger value="subscription">구독 관리</TabsTrigger>
+              </TabsList>
 
-              {/* 주소 */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">
-                  주소
-                </Label>
-                <Input
-                  type="text"
-                  value={editForm.address}
-                  onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                  disabled={!isEditing}
-                  placeholder="주소를 입력하세요"
-                  className={!isEditing ? "bg-gray-50" : ""}
-                />
-              </div>
+              <TabsContent value="profile" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <User className="h-5 w-5 mr-2" />
+                      프로필 정보
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      {/* 이메일 (수정 불가) */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-700">
+                          이메일
+                        </Label>
+                        <Input
+                          type="email"
+                          value={profile.email}
+                          disabled
+                          className="bg-gray-50"
+                        />
+                        <p className="text-xs text-gray-500">이메일은 변경할 수 없습니다.</p>
+                      </div>
 
-              {/* 전화번호 */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">
-                  전화번호
-                </Label>
-                <Input
-                  type="tel"
-                  value={editForm.phoneNumber}
-                  onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
-                  disabled={!isEditing}
-                  placeholder="전화번호를 입력하세요"
-                  className={!isEditing ? "bg-gray-50" : ""}
-                />
-              </div>
+                      {/* 주소 */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-700">
+                          주소
+                        </Label>
+                        <Input
+                          type="text"
+                          value={editForm.address}
+                          onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                          disabled={!isEditing}
+                          placeholder="주소를 입력하세요"
+                          className={!isEditing ? "bg-gray-50" : ""}
+                        />
+                      </div>
 
-              {/* 버튼 그룹 */}
-              <div className="flex gap-4 pt-4">
-                {!isEditing ? (
-                  <Button
-                    onClick={handleEdit}
-                    className="flex-1 bg-forest text-white hover:bg-forest/90"
-                  >
-                    <Edit2 className="h-4 w-4 mr-2" />
-                    정보 수정
-                  </Button>
-                ) : (
-                  <>
-                    <Button
-                      onClick={handleSave}
-                      className="flex-1 bg-forest text-white hover:bg-forest/90"
-                    >
-                      <Save className="h-4 w-4 mr-2" />
-                      저장
-                    </Button>
-                    <Button
-                      onClick={handleCancel}
-                      variant="outline"
-                      className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-100"
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      취소
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
+                      {/* 전화번호 */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-700">
+                          전화번호
+                        </Label>
+                        <Input
+                          type="tel"
+                          value={editForm.phoneNumber}
+                          onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
+                          disabled={!isEditing}
+                          placeholder="전화번호를 입력하세요"
+                          className={!isEditing ? "bg-gray-50" : ""}
+                        />
+                      </div>
+
+                      {/* 버튼 그룹 */}
+                      <div className="flex gap-4 pt-4">
+                        {!isEditing ? (
+                          <Button
+                            onClick={handleEdit}
+                            className="flex-1 bg-forest text-white hover:bg-forest/90"
+                          >
+                            <Edit2 className="h-4 w-4 mr-2" />
+                            정보 수정
+                          </Button>
+                        ) : (
+                          <>
+                            <Button
+                              onClick={handleSave}
+                              className="flex-1 bg-forest text-white hover:bg-forest/90"
+                            >
+                              <Save className="h-4 w-4 mr-2" />
+                              저장
+                            </Button>
+                            <Button
+                              onClick={handleCancel}
+                              variant="outline"
+                              className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-100"
+                            >
+                              <X className="h-4 w-4 mr-2" />
+                              취소
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="subscription" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <CreditCard className="h-5 w-5 mr-2" />
+                      구독 정보
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center pb-4 border-b">
+                        <div>
+                          <p className="font-semibold">현재 보유 코인</p>
+                          <p className="text-2xl font-bold text-forest mt-1">{user?.coins || 0} 코인</p>
+                        </div>
+                        <Link href="/subscription">
+                          <Button className="bg-forest text-white hover:bg-forest/90">
+                            코인 충전하기
+                          </Button>
+                        </Link>
+                      </div>
+
+                      <div>
+                        <p className="text-sm text-gray-600 mb-2">구독 내역</p>
+                        {subscriptions && subscriptions.length > 0 ? (
+                          <div className="space-y-3">
+                            {subscriptions.map((subscription: Subscription) => (
+                              <div key={subscription.id} className="bg-gray-50 p-4 rounded-lg">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <p className="font-semibold">플랜 ID: {subscription.planId}</p>
+                                    <p className="text-sm text-gray-600">결제 금액: {subscription.paidAmount}원</p>
+                                    <p className="text-sm text-gray-600">결제 상태: {subscription.paymentStatus}</p>
+                                    <p className="text-sm text-gray-600">
+                                      구독 시작: {new Date(subscription.startDate).toLocaleDateString()}
+                                    </p>
+                                    {subscription.endDate && (
+                                      <p className="text-sm text-gray-600">
+                                        구독 종료: {new Date(subscription.endDate).toLocaleDateString()}
+                                      </p>
+                                    )}
+                                  </div>
+                                  {subscription.paymentStatus !== 'CANCELLED' && (
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        >
+                                          구독 취소
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>구독을 취소하시겠습니까?</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            이 작업은 되돌릴 수 없습니다. 구독을 취소하면 해당 플랜의 혜택을 더 이상 받을 수 없습니다.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>취소</AlertDialogCancel>
+                                          <AlertDialogAction
+                                            onClick={() => cancelSubscriptionMutation.mutate(subscription.id)}
+                                            className="bg-red-600 hover:bg-red-700"
+                                          >
+                                            구독 취소
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <p className="text-gray-500">구독 내역이 없습니다</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </main>
