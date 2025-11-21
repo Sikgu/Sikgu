@@ -1,9 +1,6 @@
 package com.sikgu.sikgubackend.controller;
 
-import com.sikgu.sikgubackend.dto.LoginRequest;
-import com.sikgu.sikgubackend.dto.LoginResponse;
-import com.sikgu.sikgubackend.dto.SignupRequest;
-import com.sikgu.sikgubackend.dto.UserDto;
+import com.sikgu.sikgubackend.dto.*;
 import com.sikgu.sikgubackend.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -85,5 +82,24 @@ public class AuthController {
 
         log.info("LOGOUT SUCCESS: Token sent for invalidation (JWT starts with {}).", jwt.substring(0, 10));
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "비밀번호 초기화 요청 (링크 이메일 전송)")
+    @PostMapping("/reset-password-request")
+    public ResponseEntity<String> resetPasswordRequest(@RequestBody PasswordResetRequest request) {
+        // Token 생성 및 이메일 전송 (사용자 존재 여부와 무관하게 성공 응답)
+        authService.generateResetTokenAndSendEmail(request.getEmail());
+
+        // 보안상의 이유로 항상 성공 메시지를 반환
+        return ResponseEntity.ok("비밀번호 재설정 링크가 이메일로 전송되었습니다.");
+    }
+
+    @Operation(summary = "비밀번호 초기화 실행 (토큰 및 새 비밀번호 제출)")
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody PasswordResetExecution execution) {
+        // Token 검증 및 비밀번호 업데이트 실행
+        authService.resetPassword(execution.getToken(), execution.getNewPassword());
+
+        return ResponseEntity.ok("비밀번호가 성공적으로 재설정되었습니다.");
     }
 }
