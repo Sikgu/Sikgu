@@ -14,8 +14,9 @@ Preferred communication style: Simple, everyday language.
 
 - **Frontend Development Only**: This Replit workspace is used exclusively for React frontend development
 - **Backend Server**: Managed by teammates, runs on localhost:8080
-- **No Replit Deployment**: This project does not use Replit's deployment/publishing features
-- **Development Server**: Vite dev server runs on port 5000 with proxy to backend on port 8080
+- **Local Development**: Development is done locally with both frontend (port 5173) and backend (port 8080) running
+- **No Replit Deployment**: This project does not use Replit's deployment/publishing or webview features
+- **Development Server**: Vite dev server runs on port 5173 (default) with proxy to backend on port 8080
 
 ## System Architecture
 
@@ -105,7 +106,7 @@ The application appears to use a relational database (likely PostgreSQL based on
 ### Development Workflow
 
 **Build & Development**
-- Vite dev server on port 5000 with hot module replacement
+- Vite dev server on port 5173 (default) with hot module replacement
 - Proxy configuration routing API calls to backend on port 8080
 - Separate client and server builds
 - Runtime error overlay plugin for development debugging
