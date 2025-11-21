@@ -2,6 +2,7 @@ package com.sikgu.sikgubackend.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -12,7 +13,9 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private final JavaMailSender mailSender;
-    // 실제 이메일 주소로 변경해야 합니다. (application.properties의 username과 동일)
+
+    @Value("${spring.mail.username}")
+    private String fromEmail;
 
     /**
      * 비밀번호 재설정 링크가 포함된 이메일을 전송
@@ -22,6 +25,7 @@ public class EmailService {
     public void sendResetPasswordEmail(String toEmail, String resetUrl) {
         SimpleMailMessage message = new SimpleMailMessage();
 
+        message.setFrom(fromEmail);
         message.setTo(toEmail);
         message.setSubject("[Sikgu] 비밀번호 재설정 링크 안내");
 
