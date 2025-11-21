@@ -4,6 +4,7 @@ import com.sikgu.sikgubackend.security.jwt.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -30,7 +31,26 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/h2-console/**", "/auth/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/image/**", "/subscriptions", "/subscriptions/**").permitAll()
+                        .requestMatchers(
+                                HttpMethod.OPTIONS, "/**"
+                        )
+                        .permitAll()
+                        .requestMatchers(
+                                "/auth/login",
+                                "/auth/signup",
+                                "/auth/reset-password-request",
+                                "/auth/reset-password"
+                        ).permitAll()
+                        .requestMatchers(
+                                "/h2-console/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/image/**",
+                                "/users/**",
+                                "/subscriptions", "/subscriptions/**",
+                                "/carts", "/carts/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.disable())
@@ -62,7 +82,10 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.addAllowedOrigin("https://d1ktwhlebd1rc2.cloudfront.net/");
-        config.addAllowedOrigin("http://127.0.0.1:5000/");
+        //config.addAllowedOrigin("http://127.0.0.1:5000/");
+        // 프론트 개발용
+        config.addAllowedOrigin("http://localhost:5173");
+        config.addAllowedOrigin("http://127.0.0.1:5173");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);

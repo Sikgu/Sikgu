@@ -16,13 +16,15 @@ import PlantRecommendation from "@/pages/PlantRecommendation";
 import PlantTips from "@/pages/PlantTips";
 import PlantDetail from "@/pages/PlantDetail";
 import Cart from "@/pages/Cart";
-import TestApiCall from './components/TestApiCall';
+import Planterior from "@/pages/Planterior";
+import Reviews from "@/pages/Reviews";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/subscription" component={Subscription} />
+      <Route path="/planterior" component={Planterior} />
       <Route path="/how-it-works" component={HowItWorks} />
       <Route path="/plant-match" component={PlantRecommendation} />
       <Route path="/plant-tips" component={PlantTips} />
@@ -32,6 +34,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
       <Route path="/mypage" component={MyPage} />
+      <Route path="/reviews" component={Reviews} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -40,7 +43,6 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TestApiCall />
       <CartProvider>
         <TooltipProvider>
           <Toaster />

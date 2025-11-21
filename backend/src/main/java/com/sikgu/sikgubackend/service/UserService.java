@@ -7,10 +7,12 @@ import com.sikgu.sikgubackend.entity.User;
 import com.sikgu.sikgubackend.entity.enums.Role;
 import com.sikgu.sikgubackend.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class UserService {
 
@@ -24,29 +26,36 @@ public class UserService {
 
     public boolean signup(SignupRequest signupRequest) {
         if (userRepository.findByEmail(signupRequest.getEmail()).isPresent()) {
-            System.err.println("회원가입 실패: 이미 존재하는 이메일입니다.");
+            log.warn("SIGNUP FAILED: Email already exists: {}", signupRequest.getEmail());
             return false;
         }
 
         String email = signupRequest.getEmail();
         String password = passwordEncoder.encode(signupRequest.getPassword());
 
-        User user = User.createUser(email, password, Role.USER);
+        User user = User.builder().email(email).password(password).role(Role.USER).build();
 
         try {
             userRepository.save(user);
-            System.out.println("회원가입 처리 완료: " + signupRequest.getEmail());
+            log.info("SIGNUP SUCCESS: New user registered: {}", signupRequest.getEmail());
             return true;
         } catch (Exception e) {
-            System.err.println("회원가입 중 오류 발생: " + e.getMessage());
+            log.error("SIGNUP ERROR: Database save failed for email: {}", signupRequest.getEmail(), e);
             return false;
         }
     }
 
     // 마이페이지에 표시할 사용자 정보를 조회하는 메소드
     public UserDto getUserProfile(String email) {
+        log.debug("USER_READ: Attempting to fetch profile for email: {}", email);
+
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
+                .orElseThrow(() -> {
+                    log.warn("USER_READ FAILED: User not found with email: {}", email);
+                    return new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email);
+                });
+
+        log.debug("USER_READ SUCCESS: Profile retrieved for user ID: {}", user.getId());
 
         // User 엔티티를 확장된 UserDto로 변환하여 반환
         return new UserDto(
@@ -60,8 +69,13 @@ public class UserService {
     // 주소 및 전화번호 변경
     @Transactional
     public UserDto updateInfo(String email, InfoRequest request) {
+        log.info("USER_UPDATE: Attempting to update info for email: {}", email);
+
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
+                .orElseThrow(() -> {
+                    log.warn("USER_UPDATE FAILED: Target user not found with email: {}", email);
+                    return new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email);
+                });
 
         user.updateInfo(
                 request.getAddress(),
@@ -69,6 +83,8 @@ public class UserService {
         );
 
         userRepository.save(user);
+
+        log.info("USER_UPDATE SUCCESS: Info updated for user ID: {}", user.getId());
 
         return getUserProfile(email);
     }

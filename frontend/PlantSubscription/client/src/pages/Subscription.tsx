@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
 import { Leaf, Check, Star } from "lucide-react";
 import { useState, useEffect } from "react";
+import Header from "@/components/Header";
 
 const subscriptionPlans = [
   {
@@ -102,27 +103,7 @@ export default function Subscription() {
 
   return (
     <div className="min-h-screen bg-bg-soft">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-100" data-testid="header">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-bold text-forest hover:text-forest/90 transition-colors duration-200" data-testid="logo">
-              식구
-            </Link>
-            <nav className="flex items-center space-x-6">
-              <Link href="/subscription" className="text-forest font-medium" data-testid="link-subscription">
-                구독
-              </Link>
-              <Link href="/how-it-works" className="text-gray-700 hover:text-forest transition-colors duration-200 font-medium" data-testid="link-how-it-works">
-                이용가이드
-              </Link>
-              <Button className="bg-forest text-white hover:bg-forest/90 font-medium">
-                <Link href="/login" className="text-white">로그인</Link>
-              </Button>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Hero Section */}
       <section 

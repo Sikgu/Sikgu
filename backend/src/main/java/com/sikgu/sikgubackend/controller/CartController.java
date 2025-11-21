@@ -5,6 +5,7 @@ import com.sikgu.sikgubackend.dto.CartItemAddRequest;
 import com.sikgu.sikgubackend.service.CartService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/carts")
 @RequiredArgsConstructor
@@ -28,7 +30,11 @@ public class CartController {
     @GetMapping // GET /carts
     public ResponseEntity<CartDto> getShoppingCart(@AuthenticationPrincipal UserDetails userDetails) {
         String email = userDetails.getUsername();
+        log.debug("API CALL: GET /carts - Request received for user: {}", email);
+
         CartDto cartDto = cartService.getShoppingCart(email);
+
+        log.debug("CART READ SUCCESS: Returned cart data for user: {}", email);
         return ResponseEntity.ok(cartDto);
     }
 
@@ -39,7 +45,11 @@ public class CartController {
             @RequestBody CartItemAddRequest request) {
 
         String email = userDetails.getUsername();
+        log.info("API CALL: POST /carts - Add item {} requested by user: {}", request.getPlantId(), email);
+
         CartDto updatedCart = cartService.addItemToCart(email, request);
+
+        log.info("CART UPDATE SUCCESS: Item added/quantity increased for user: {}", email);
         return ResponseEntity.ok(updatedCart);
     }
 
@@ -50,7 +60,11 @@ public class CartController {
             @PathVariable Long plantId) {
 
         String email = userDetails.getUsername();
+        log.info("API CALL: PATCH /carts/{}/quantity - Decrease item quantity requested by user: {}", plantId, email);
+
         CartDto updatedCart = cartService.decreaseItemQuantity(email, plantId);
+
+        log.info("CART UPDATE SUCCESS: Quantity decreased for item {} by user: {}", plantId, email);
         return ResponseEntity.ok(updatedCart);
     }
 
@@ -61,7 +75,11 @@ public class CartController {
             @PathVariable Long plantId) {
 
         String email = userDetails.getUsername();
+        log.warn("API CALL: DELETE /carts/{} - Item removal requested by user: {}", plantId, email); // WARN: 중요한 상태 변경
+
         CartDto updatedCart = cartService.removeItemFromCart(email, plantId);
+
+        log.info("CART UPDATE SUCCESS: Item {} fully removed by user: {}", plantId, email);
         return ResponseEntity.ok(updatedCart);
     }
 
@@ -69,7 +87,11 @@ public class CartController {
     @DeleteMapping // DELETE /carts
     public ResponseEntity<CartDto> clearCart(@AuthenticationPrincipal UserDetails userDetails) {
         String email = userDetails.getUsername();
+        log.warn("API CALL: DELETE /carts - FULL CART CLEAR requested by user: {}", email); // WARN: 전체 데이터 삭제
+
         CartDto updatedCart = cartService.clearCart(email);
+
+        log.info("CART UPDATE SUCCESS: Cart successfully cleared for user: {}", email);
         return ResponseEntity.ok(updatedCart);
     }
 }

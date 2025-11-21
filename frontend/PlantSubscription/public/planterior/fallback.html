@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3D 플랜테리어 - WebGL 필요</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      color: white;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    .icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 15px;
+    }
+    p {
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 15px;
+      opacity: 0.9;
+    }
+    .note {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 25px;
+      font-size: 14px;
+    }
+    .note strong {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    .button {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 30px;
+      background: white;
+      color: #667eea;
+      text-decoration: none;
+      border-radius: 25px;
+      font-weight: 600;
+      transition: transform 0.2s;
+    }
+    .button:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">🌿</div>
+    <h1>3D 플랜테리어 뷰어</h1>
+    <p>
+      3D 플랜테리어는 WebGL을 사용하는 인터랙티브 3D 시뮬레이션입니다.
+    </p>
+    <p>
+      현재 미리보기 환경에서는 WebGL이 제한되어 있어 3D 뷰어를 표시할 수 없습니다.
+    </p>
+    
+    <div class="note">
+      <strong>💡 3D 뷰어를 사용하려면:</strong>
+      새 탭에서 애플리케이션을 열어주세요. 그러면 WebGL을 완전히 지원하는 브라우저 환경에서 3D 식물 배치 시뮬레이션을 체험하실 수 있습니다.
+    </div>
+    
+    <a href="/" class="button">홈으로 돌아가기</a>
+  </div>
+</body>
+</html>

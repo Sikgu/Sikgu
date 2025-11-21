@@ -32,12 +32,11 @@ public class Review extends BaseEntity {
 
     private LocalDateTime createdAt;
 
-    public static Review createReview(User user, long rating, String content) {
-        Review review = new Review();
-        review.user = user;
-        review.rating = rating;
-        review.content = content;
-        review.createdAt = LocalDateTime.now();
-        return review;
+    @Builder
+    public Review(User user, long rating, String content) {
+        this.user = user;
+        this.rating = rating;
+        this.content = content;
+        this.createdAt = LocalDateTime.now();
     }
 }

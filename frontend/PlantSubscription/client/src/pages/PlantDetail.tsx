@@ -311,55 +311,11 @@ export default function PlantDetail() {
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
   const { addItem } = useCart();
+  const queryClient = useQueryClient();
 
   // URL에서 ID 추출하여 해당 식물 찾기
   const plantId = params?.id ? parseInt(params.id) : null;
   const plant = plantDetails.find(p => p.id === plantId);
-
-  // 식물을 찾지 못한 경우 홈으로 리다이렉트
-  useEffect(() => {
-    if (!plant) {
-      setLocation("/");
-    }
-  }, [plant, setLocation]);
-
-  // 리다이렉트 중이거나 식물을 찾지 못한 경우
-  if (!plant) {
-    return null;
-  }
-
-  const handleAddToCart = () => {
-    // 로그인 확인
-    if (!isAuthenticated) {
-      toast({
-        title: "로그인이 필요합니다",
-        description: "로그인 후 이용해주세요.",
-        variant: "destructive",
-      });
-      setLocation("/login");
-      return;
-    }
-
-    // 장바구니에 추가
-    addItem({
-      id: plant.id,
-      name: plant.name,
-      size: plant.size,
-      coins: plant.coins,
-      image: plant.images[0],
-    });
-
-    setAddedToCart(true);
-    toast({
-      title: "장바구니에 추가되었습니다",
-      description: `${plant.name}이(가) 장바구니에 담겼습니다.`,
-    });
-    
-    // 3초 후 버튼 상태 리셋
-    setTimeout(() => setAddedToCart(false), 3000);
-  };
-
-  const queryClient = useQueryClient();
 
   const purchaseMutation = useMutation({
     mutationFn: async (orderData: {
@@ -388,7 +344,6 @@ export default function PlantDetail() {
           description: `현재 코인: ${error.currentCoins}, 필요 코인: ${error.requiredCoins}`,
           variant: "destructive",
         });
-        setLocation("/subscription");
       } else {
         toast({
           title: "구매 실패",
@@ -398,6 +353,51 @@ export default function PlantDetail() {
       }
     },
   });
+
+  // 식물을 찾지 못한 경우 홈으로 리다이렉트
+  useEffect(() => {
+    if (!plant) {
+      setLocation("/");
+    }
+  }, [plant, setLocation]);
+
+  // 리다이렉트 중이거나 식물을 찾지 못한 경우
+  if (!plant) {
+    return null;
+  }
+
+  const handleAddToCart = async () => {
+    // 로그인 확인
+    if (!isAuthenticated) {
+      toast({
+        title: "로그인이 필요합니다",
+        description: "로그인 후 이용해주세요.",
+        variant: "destructive",
+      });
+      setLocation("/login");
+      return;
+    }
+
+    try {
+      // 장바구니에 추가 (plantId만 전달)
+      await addItem(plant.id);
+
+      setAddedToCart(true);
+      toast({
+        title: "장바구니에 추가되었습니다",
+        description: `${plant.name}이(가) 장바구니에 담겼습니다.`,
+      });
+      
+      // 3초 후 버튼 상태 리셋
+      setTimeout(() => setAddedToCart(false), 3000);
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "장바구니 추가에 실패했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handlePurchase = () => {
     // 로그인 확인

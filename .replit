@@ -1,0 +1,14 @@
+[agent]
+expertMode = true
+
+[workflows]
+runButton = "Start frontend"
+
+[[workflows.workflow]]
+name = "Start frontend"
+author = 49769209
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd frontend/PlantSubscription && npm run dev"

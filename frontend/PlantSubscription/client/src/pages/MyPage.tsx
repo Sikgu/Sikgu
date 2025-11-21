@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Link, useLocation } from "wouter";
-import { User, Settings, CreditCard, Package, Calendar, Leaf, MapPin, Phone, ShoppingBag } from "lucide-react";
+import { User, Settings, CreditCard, Package, Calendar, Leaf, MapPin, Phone, ShoppingBag, Check, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -22,11 +22,11 @@ export default function MyPage() {
   const { toast } = useToast();
   const [location] = useLocation();
   const queryClient = useQueryClient();
-  
+
   // URL에서 탭 파라미터 가져오기
   const urlParams = new URLSearchParams(location.split('?')[1]);
   const defaultTab = urlParams.get('tab') || 'profile';
-  
+
   const [selectedTab, setSelectedTab] = useState(defaultTab);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileData, setProfileData] = useState({ address: '', phone: '' });
@@ -94,9 +94,20 @@ export default function MyPage() {
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     },
     onError: (error: any) => {
+      const errorMessage = error.message || "알 수 없는 오류가 발생했습니다.";
+      let userFriendlyMessage = errorMessage;
+      
+      if (errorMessage.includes("현재 비밀번호") || errorMessage.includes("incorrect")) {
+        userFriendlyMessage = "현재 비밀번호가 올바르지 않습니다. 다시 확인해주세요.";
+      } else if (errorMessage.includes("동일") || errorMessage.includes("same")) {
+        userFriendlyMessage = "새 비밀번호는 현재 비밀번호와 달라야 합니다.";
+      } else if (errorMessage.includes("8자")) {
+        userFriendlyMessage = "비밀번호는 8자 이상이어야 합니다.";
+      }
+      
       toast({
         title: "비밀번호 변경 실패",
-        description: error.message || "다시 시도해주세요.",
+        description: userFriendlyMessage,
         variant: "destructive",
       });
     },
@@ -128,10 +139,37 @@ export default function MyPage() {
   };
 
   const handlePasswordChange = () => {
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      toast({
+        title: "입력 오류",
+        description: "모든 필드를 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      toast({
+        title: "비밀번호 오류",
+        description: "새 비밀번호는 8자 이상이어야 합니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordData.currentPassword === passwordData.newPassword) {
+      toast({
+        title: "비밀번호 오류",
+        description: "새 비밀번호는 현재 비밀번호와 달라야 합니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast({
-        title: "비밀번호 확인 실패",
-        description: "새 비밀번호와 확인 비밀번호가 일치하지 않습니다.",
+        title: "비밀번호 불일치",
+        description: "새 비밀번호가 일치하지 않습니다.",
         variant: "destructive",
       });
       return;
@@ -350,7 +388,7 @@ export default function MyPage() {
                     <Leaf className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">결제한 식물이 없습니다</h3>
                     <p className="text-gray-600 mb-6">지금 식물을 구매하고 초록 생활을 시작해보세요!</p>
-                    <Link href="/plant-recommendation">
+                    <Link href="/">
                       <Button className="bg-forest text-white hover:bg-forest/90">
                         식물 둘러보기
                       </Button>
@@ -410,7 +448,7 @@ export default function MyPage() {
                       const isActive = sub.autoRenew === 1 && (!sub.expiresAt || new Date(sub.expiresAt) > new Date());
                       const isCanceled = sub.canceledAt !== null;
                       const daysLeft = sub.expiresAt ? differenceInDays(new Date(sub.expiresAt), new Date()) : 0;
-                      
+
                       return (
                         <div key={sub.id} className="border rounded-lg p-4" data-testid={`subscription-${sub.id}`}>
                           <div className="flex justify-between items-start">
@@ -520,6 +558,21 @@ export default function MyPage() {
                             onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                             data-testid="input-new-password"
                           />
+                          {passwordData.newPassword && (
+                            <div className="space-y-1 mt-1">
+                              {passwordData.newPassword.length < 8 ? (
+                                <div className="text-red-500 text-xs flex items-center">
+                                  <X className="h-3 w-3 mr-1" />
+                                  비밀번호는 8자 이상이어야 합니다.
+                                </div>
+                              ) : (
+                                <div className="text-green-500 text-xs flex items-center">
+                                  <Check className="h-3 w-3 mr-1" />
+                                  8자 이상
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                         <div>
                           <Label htmlFor="confirm-password">새 비밀번호 확인</Label>
@@ -535,11 +588,14 @@ export default function MyPage() {
                       <DialogFooter>
                         <Button
                           onClick={handlePasswordChange}
-                          disabled={changePasswordMutation.isPending}
+                          disabled={
+                            changePasswordMutation.isPending || 
+                            passwordData.newPassword.length < 8
+                          }
                           className="bg-forest text-white hover:bg-forest/90"
                           data-testid="button-submit-password"
                         >
-                          {changePasswordMutation.isPending ? "변경 중..." : "비밀번호 변경"}
+                          {changePasswordMutation.isPending ? "변경 중..." : "변경하기"}
                         </Button>
                       </DialogFooter>
                     </DialogContent>

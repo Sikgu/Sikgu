@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D 플랜테리어 - 식구</title>
+    <link rel="stylesheet" href="./src/style.css" />
+    <style>
+      .webgl-error {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        max-width: 500px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+      }
+      .webgl-error.show {
+        display: block;
+      }
+      .webgl-error h2 {
+        font-size: 24px;
+        margin-bottom: 15px;
+      }
+      .webgl-error p {
+        font-size: 16px;
+        line-height: 1.6;
+        opacity: 0.9;
+      }
+      .webgl-error .icon {
+        font-size: 60px;
+        margin-bottom: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toolbar"></div>
+    <div id="app"></div>
+    <div id="webgl-error" class="webgl-error">
+      <div class="icon">⚠️</div>
+      <h2>WebGL을 사용할 수 없습니다</h2>
+      <p>3D 뷰어를 표시하려면 WebGL이 필요합니다.<br>새 탭에서 이 페이지를 열어주세요.</p>
+    </div>
+    
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.module.js",
+          "three/examples/jsm/controls/OrbitControls.js": "https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/controls/OrbitControls.js",
+          "three/examples/jsm/loaders/GLTFLoader.js": "https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/loaders/GLTFLoader.js"
+        }
+      }
+    </script>
+    <script>
+      // WebGL 지원 확인
+      function checkWebGL() {
+        try {
+          const canvas = document.createElement('canvas');
+          const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+          if (!gl) {
+            document.getElementById('webgl-error').classList.add('show');
+            return false;
+          }
+          return true;
+        } catch (e) {
+          document.getElementById('webgl-error').classList.add('show');
+          return false;
+        }
+      }
+      
+      if (!checkWebGL()) {
+        console.error('WebGL is not supported in this environment');
+      }
+    </script>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

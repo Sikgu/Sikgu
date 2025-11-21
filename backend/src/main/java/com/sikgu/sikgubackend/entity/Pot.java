@@ -24,12 +24,11 @@ public class Pot extends BaseEntity {
 
     private String color;
 
-    public static Pot createPot(String name, Size size, String material, String color) {
-        Pot pot = new Pot();
-        pot.name = name;
-        pot.size = size;
-        pot.material = material;
-        pot.color = color;
-        return pot;
+    @Builder
+    public Pot(String name, Size size, String material, String color) {
+        this.name = name;
+        this.size = size;
+        this.material = material;
+        this.color = color;
     }
 }

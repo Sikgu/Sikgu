@@ -1,55 +1,69 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useLocation } from "wouter";
-import { Eye, EyeOff, Leaf } from "lucide-react";
+import { Eye, EyeOff, Leaf, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Login() {
   const [, setLocation] = useLocation();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { login, isLoginLoading, isAuthenticated } = useAuth();
+
+  // Email validation regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailValid = emailRegex.test(email);
+
+  // 이미 로그인된 경우 홈으로 리다이렉트
+  useEffect(() => {
+    if (isAuthenticated) {
+      setLocation("/");
+    }
+  }, [isAuthenticated, setLocation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      if (response.ok) {
-        toast({
-          title: "로그인 성공",
-          description: "환영합니다!",
-        });
-        setLocation("/");
-      } else {
-        const error = await response.text();
-        toast({
-          title: "로그인 실패",
-          description: error || "아이디 또는 비밀번호를 확인해주세요.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
+    
+    // Email format validation
+    if (!isEmailValid) {
       toast({
-        title: "오류 발생",
-        description: "로그인 중 오류가 발생했습니다.",
+        title: "이메일 오류",
+        description: "올바른 이메일 형식을 입력해주세요.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
+      return;
+    }
+
+    if (!password) {
+      toast({
+        title: "비밀번호 오류",
+        description: "비밀번호를 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await login({ email, password });
+      toast({
+        title: "로그인 성공",
+        description: "환영합니다!",
+      });
+      // 로그인 성공 시 useAuth의 onSuccess에서 쿼리 무효화가 처리되고
+      // useEffect에서 isAuthenticated가 true가 되면 자동으로 리다이렉트됩니다
+    } catch (error: any) {
+      toast({
+        title: "로그인 실패",
+        description: error.message || "이메일 또는 비밀번호를 확인해주세요.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -82,19 +96,31 @@ export default function Login() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-sm font-medium text-gray-700">
-                아이디
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                이메일
               </Label>
               <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="아이디를 입력하세요"
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="example@email.com"
                 required
                 className="w-full"
-                data-testid="input-username"
+                data-testid="input-email"
               />
+              {email && (
+                <div className="flex items-center text-sm mt-1">
+                  {isEmailValid ? (
+                    <Check className="h-4 w-4 text-green-500 mr-1" />
+                  ) : (
+                    <X className="h-4 w-4 text-red-500 mr-1" />
+                  )}
+                  <span className={isEmailValid ? "text-green-500" : "text-red-500"}>
+                    {isEmailValid ? "올바른 이메일 형식" : "이메일 형식이 아닙니다"}
+                  </span>
+                </div>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -130,10 +156,10 @@ export default function Login() {
             <Button
               type="submit"
               className="w-full bg-forest text-white hover:bg-forest/90 py-2"
-              disabled={isLoading}
+              disabled={isLoginLoading || !isEmailValid || !password}
               data-testid="button-login"
             >
-              {isLoading ? "로그인 중..." : "로그인"}
+              {isLoginLoading ? "로그인 중..." : "로그인"}
             </Button>
           </form>
           
