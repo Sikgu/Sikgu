@@ -54,6 +54,7 @@ export default function MyPage() {
     address: "",
     phoneNumber: "",
   });
+  const [phoneError, setPhoneError] = useState<string>("");
   const queryClient = useQueryClient();
 
   // URL에서 tab 파라미터 읽기
@@ -146,12 +147,56 @@ export default function MyPage() {
     fetchProfile();
   }, [isAuthenticated, user]);
 
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    
+    // 숫자가 아닌 문자가 포함되어 있는지 확인
+    if (value && !/^\d*$/.test(value)) {
+      setPhoneError("숫자만 입력해주세요");
+      return;
+    }
+    
+    setEditForm({ ...editForm, phoneNumber: value });
+    
+    // 유효성 검사
+    if (value === "") {
+      setPhoneError("");
+      return;
+    }
+    
+    const length = value.length;
+    
+    // 12자리 이상인 경우
+    if (length > 11) {
+      setPhoneError("전화번호는 최대 11자리까지 입력 가능합니다");
+      return;
+    }
+    
+    // 010으로 시작하는 경우
+    if (value.startsWith("010")) {
+      if (length < 11) {
+        setPhoneError("010으로 시작하는 번호는 11자리여야 합니다");
+      } else if (length === 11) {
+        setPhoneError("");
+      }
+    } else {
+      // 010이 아닌 경우
+      if (length < 10) {
+        setPhoneError("전화번호는 10자리 또는 11자리여야 합니다");
+      } else if (length === 10 || length === 11) {
+        setPhoneError("");
+      }
+    }
+  };
+
   const handleEdit = () => {
     setIsEditing(true);
+    setPhoneError("");
   };
 
   const handleCancel = () => {
     setIsEditing(false);
+    setPhoneError("");
     if (profile) {
       setEditForm({
         address: profile.address || "",
@@ -161,6 +206,52 @@ export default function MyPage() {
   };
 
   const handleSave = async () => {
+    // 전화번호 유효성 검사
+    if (editForm.phoneNumber) {
+      const phoneNumber = editForm.phoneNumber;
+      const length = phoneNumber.length;
+      
+      // 숫자가 아닌 문자 체크
+      if (!/^\d+$/.test(phoneNumber)) {
+        toast({
+          title: "입력 오류",
+          description: "전화번호는 숫자만 입력해주세요.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // 길이 체크
+      if (length > 11) {
+        toast({
+          title: "입력 오류",
+          description: "전화번호는 최대 11자리까지 입력 가능합니다.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // 010으로 시작하는 경우 11자리 체크
+      if (phoneNumber.startsWith("010") && length !== 11) {
+        toast({
+          title: "입력 오류",
+          description: "010으로 시작하는 번호는 11자리여야 합니다.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // 010이 아닌 경우 10자리 또는 11자리 체크
+      if (!phoneNumber.startsWith("010") && length !== 10 && length !== 11) {
+        toast({
+          title: "입력 오류",
+          description: "전화번호는 10자리 또는 11자리여야 합니다.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
     try {
       const response = await apiRequest("POST", "/users/info", {
         method: "POST",
@@ -297,11 +388,18 @@ export default function MyPage() {
                         <Input
                           type="tel"
                           value={editForm.phoneNumber}
-                          onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
+                          onChange={handlePhoneNumberChange}
                           disabled={!isEditing}
-                          placeholder="전화번호를 입력하세요"
+                          placeholder="전화번호를 입력하세요 (숫자만)"
                           className={!isEditing ? "bg-gray-50" : ""}
+                          maxLength={11}
                         />
+                        {isEditing && phoneError && (
+                          <p className="text-xs text-red-500">{phoneError}</p>
+                        )}
+                        {isEditing && !phoneError && editForm.phoneNumber && (
+                          <p className="text-xs text-green-600">올바른 전화번호 형식입니다</p>
+                        )}
                       </div>
 
                       {/* 버튼 그룹 */}
@@ -319,6 +417,7 @@ export default function MyPage() {
                             <Button
                               onClick={handleSave}
                               className="flex-1 bg-forest text-white hover:bg-forest/90"
+                              disabled={!!phoneError}
                             >
                               <Save className="h-4 w-4 mr-2" />
                               저장
