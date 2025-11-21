@@ -118,7 +118,11 @@ public class AuthService {
     }
 
     @Transactional
-    public void resetPassword(String token, String newPassword) {
+    public void resetPassword(String token, String newPassword, String passwordConfirm) {
+        // 비밀번호 확인 검증
+        if (!newPassword.equals(passwordConfirm)) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
 
         PasswordResetToken resetToken = tokenRepository.findByToken(token)
                 .orElseThrow(() -> {

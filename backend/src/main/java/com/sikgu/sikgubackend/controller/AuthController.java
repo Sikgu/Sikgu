@@ -94,12 +94,15 @@ public class AuthController {
         return ResponseEntity.ok("비밀번호 재설정 링크가 이메일로 전송되었습니다.");
     }
 
-    @Operation(summary = "비밀번호 초기화 실행 (토큰 및 새 비밀번호 제출)")
+    @Operation(summary = "비밀번호 재설정 (토큰 + 새 비밀번호)")
     @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestBody PasswordResetExecution execution) {
-        // Token 검증 및 비밀번호 업데이트 실행
-        authService.resetPassword(execution.getToken(), execution.getNewPassword());
-
-        return ResponseEntity.ok("비밀번호가 성공적으로 재설정되었습니다.");
+    public ResponseEntity<String> resetPassword(@RequestBody PasswordResetRequest request) {
+        try {
+            authService.resetPassword(request.getToken(), request.getPassword(), request.getPasswordConfirm());
+            return ResponseEntity.ok("비밀번호가 성공적으로 재설정되었습니다.");
+        } catch (IllegalArgumentException e) {
+            log.warn("PASSWORD RESET FAILED: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

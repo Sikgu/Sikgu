@@ -18,8 +18,8 @@ import PlantDetail from "@/pages/PlantDetail";
 import Cart from "@/pages/Cart";
 import Planterior from "@/pages/Planterior";
 import Reviews from "@/pages/Reviews";
-import ForgotPassword from "@/pages/ForgotPassword";
-import ResetPassword from "@/pages/ResetPassword";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 function Router() {
   return (
