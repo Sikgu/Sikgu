@@ -200,7 +200,6 @@ export function useAuth() {
         method: "POST",
         body: JSON.stringify({ email, password }),
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
       });
 
       if (!res.ok) {
@@ -219,7 +218,7 @@ export function useAuth() {
     },
 
     onSuccess: () => {
-      // 로그인 직후 강제 재조회 → 여기서 401 나오면 절대 안 됨 (토큰 저장했으니 성공)
+      // 로그인 직후 강제 재조회
       queryClient.invalidateQueries({ queryKey: ["/auth/me"] });
     },
   });
@@ -235,7 +234,6 @@ export function useAuth() {
 
       const res = await fetch("/auth/logout", {
         method: "POST",
-        credentials: "include",
         headers: {
           Authorization: `Bearer ${token}`,
         },

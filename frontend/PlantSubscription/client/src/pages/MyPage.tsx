@@ -107,35 +107,24 @@ export default function MyPage() {
   // 사용자 프로필 정보 가져오기
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!isAuthenticated) return;
+      if (!isAuthenticated || !user) return;
 
-      try {
-        setIsLoading(true);
-        const response = await apiRequest("GET", "/auth/me");
-
-        if (!response.ok) {
-          throw new Error("프로필 정보를 불러올 수 없습니다.");
-        }
-
-        const data = await response.json();
-        setProfile(data);
-        setEditForm({
-          address: data.address || "",
-          phoneNumber: data.phoneNumber || "",
-        });
-      } catch (error: any) {
-        toast({
-          title: "오류 발생",
-          description: error.message || "프로필 정보를 불러올 수 없습니다.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
+      setProfile({
+        id: parseInt(user.id),
+        email: user.username,
+        address: user.address,
+        phoneNumber: user.phone,
+        coins: user.coins,
+      });
+      setEditForm({
+        address: user.address || "",
+        phoneNumber: user.phone || "",
+      });
+      setIsLoading(false);
     };
 
     fetchProfile();
-  }, [isAuthenticated, toast]);
+  }, [isAuthenticated, user]);
 
   const handleEdit = () => {
     setIsEditing(true);
