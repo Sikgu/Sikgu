@@ -109,17 +109,37 @@ export default function MyPage() {
     const fetchProfile = async () => {
       if (!isAuthenticated || !user) return;
 
-      setProfile({
-        id: parseInt(user.id),
-        email: user.username,
-        address: user.address,
-        phoneNumber: user.phone,
-        coins: user.coins,
-      });
-      setEditForm({
-        address: user.address || "",
-        phoneNumber: user.phone || "",
-      });
+      try {
+        // /users/mypage API를 호출하여 최신 사용자 정보 가져오기
+        const response = await apiRequest("GET", "/users/mypage");
+        const data = await response.json();
+        
+        setProfile({
+          id: data.id,
+          email: data.email,
+          address: data.address,
+          phoneNumber: data.phoneNumber,
+          coins: data.coins || 0,
+        });
+        setEditForm({
+          address: data.address || "",
+          phoneNumber: data.phoneNumber || "",
+        });
+      } catch (error) {
+        console.error("프로필 정보를 가져오는데 실패했습니다:", error);
+        // fallback to user context
+        setProfile({
+          id: parseInt(user.id),
+          email: user.username,
+          address: user.address,
+          phoneNumber: user.phone,
+          coins: user.coins || 0,
+        });
+        setEditForm({
+          address: user.address || "",
+          phoneNumber: user.phone || "",
+        });
+      }
       setIsLoading(false);
     };
 
@@ -332,7 +352,7 @@ export default function MyPage() {
                       <div className="flex justify-between items-center pb-4 border-b">
                         <div>
                           <p className="font-semibold">현재 보유 코인</p>
-                          <p className="text-2xl font-bold text-forest mt-1">{user?.coins || 0} 코인</p>
+                          <p className="text-2xl font-bold text-forest mt-1">{profile?.coins || 0} 코인</p>
                         </div>
                         <Link href="/subscription">
                           <Button className="bg-forest text-white hover:bg-forest/90">
