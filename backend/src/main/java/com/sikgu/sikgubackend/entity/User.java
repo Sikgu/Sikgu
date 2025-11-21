@@ -31,6 +31,8 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    private Long coins;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subscription_id")
     private Subscription subscription;
@@ -40,9 +42,6 @@ public class User extends BaseEntity {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SupportQnA> supportQnAs = new ArrayList<>();
-
-    // 코인 관련 필드 추가 (기존 코드에 없었으므로 추가 필요)
-    private Integer coins;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Cart> carts = new ArrayList<>();
@@ -77,7 +76,7 @@ public class User extends BaseEntity {
 
     public void addCoins(int amount) {
         if (this.coins == null) {
-            this.coins = 0;
+            this.coins = 0L;
         }
         this.coins += amount;
     }
