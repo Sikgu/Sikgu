@@ -8,8 +8,6 @@ import { Link, useLocation } from "wouter";
 import { Eye, EyeOff, Leaf, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 export default function Signup() {
   const [, setLocation] = useLocation();
   const [email, setEmail] = useState("");
@@ -60,12 +58,13 @@ export default function Signup() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+      const response = await fetch("/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
+        credentials: "include",
       });
 
       if (response.ok) {
