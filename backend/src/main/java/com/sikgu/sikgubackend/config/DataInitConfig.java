@@ -83,6 +83,11 @@ public class DataInitConfig {
                     .tips("통풍이 잘 되는 곳에 두고, 에어컨이나 난방기 바람은 피해주세요.")
                     .build();
 
+            Model3D tillandsiaModel = Model3D.builder()
+                    .modelingURL("/models/dynamic/small/Tillandsia.glb")
+                    .height(2.2)
+                    .build();
+
             Plant tillandsia = Plant.builder()
                     .name("틸란드시아")
                     .size(PlantSize.SMALL)
@@ -96,7 +101,7 @@ public class DataInitConfig {
                             "/images/tillandsia.jpg",
                             "https://images.unsplash.com/photo-1565006836881-0c92f7d5d334?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
                     ))
-                    .modelingURL("/models/dynamic/small/Tillandsia.glb")
+                    .model3D(tillandsiaModel)
                     .careGuide(tillandsiaCareGuide)
                     .features(List.of(
                             "흙이 필요 없음",
@@ -134,6 +139,11 @@ public class DataInitConfig {
                     .tips("과습은 뿌리 썩음의 원인이 됩니다. 배수가 잘 되는 흙을 사용하세요.")
                     .build();
 
+            Model3D miniCactusModel = Model3D.builder()
+                    .modelingURL("/models/dynamic/small/Mini_Cactus.glb")
+                    .height(2.2)
+                    .build();
+
             Plant miniCactus = Plant.builder()
                     .name("미니 선인장")
                     .size(PlantSize.SMALL)
@@ -147,7 +157,7 @@ public class DataInitConfig {
                             "/images/mini-cactus.jpg",
                             "https://images.unsplash.com/photo-1558603668-6570496b66f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
                     ))
-                    .modelingURL("/models/dynamic/small/Mini_Cactus.glb")
+                    .model3D(miniCactusModel)
                     .careGuide(miniCactusCareGuide)
                     .features(List.of("물주기 간단", "햇빛을 좋아함", "다양한 품종", "초보자에게 적합"))
                     .careTip("      <h3>\uD83C\uDF35 미니 선인장 특징</h3>\n" +
@@ -180,6 +190,11 @@ public class DataInitConfig {
                     .tips("잎에 직접 분무하지 마세요. 얼룩이 생길 수 있습니다. 정수된 물이나 빗물을 사용하는 것이 좋습니다.")
                     .build();
 
+            Model3D calatheaOrbifoliaModel = Model3D.builder()
+                    .modelingURL("/models/dynamic/small/Calathea_Orbifolia.glb")
+                    .height(2.2)
+                    .build();
+
             Plant calatheaOrbifolia = Plant.builder()
                     .name("칼라데아 오르비폴리아")
                     .size(PlantSize.SMALL)
@@ -193,7 +208,7 @@ public class DataInitConfig {
                             "/images/calathea-orbifolia.jpg",
                             "https://images.unsplash.com/photo-1597689879203-46e57cd74336?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
                     ))
-                    .modelingURL("/models/dynamic/small/Calathea_Orbifolia.glb")
+                    .model3D(calatheaOrbifoliaModel)
                     .careGuide(calatheaOrbifoliaCareGuide)
                     .features(List.of("아름다운 잎무늬", "공기정화 효과", "독특한 외형", "습도를 좋아함"))
                     .careTip("      <h3>\uD83C\uDFA8 칼라데아의 매력</h3>\n" +
@@ -226,6 +241,11 @@ public class DataInitConfig {
                     .tips("너무 길어진 덩굴은 잘라주세요. 잘라낸 가지를 물에 꽂으면 뿌리가 나와 새로운 식물로 키울 수 있습니다.")
                     .build();
 
+            Model3D scindapsusModel = Model3D.builder()
+                    .modelingURL("/models/dynamic/small/Golden_Pothos.glb")
+                    .height(2.2)
+                    .build();
+
             Plant scindapsus = Plant.builder()
                     .name("스킨답서스")
                     .size(PlantSize.SMALL)
@@ -239,7 +259,7 @@ public class DataInitConfig {
                             "/images/scindapsus.jpg",
                             "https://images.unsplash.com/photo-1597082980533-ec368d0b5c0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
                     ))
-                    .modelingURL("/models/dynamic/small/Golden_Pothos.glb")
+                    .model3D(scindapsusModel)
                     .careGuide(scindapsusCareGuide)
                     .features(List.of("초보자 추천", "공기정화 우수", "번식이 쉬움", "어두운 곳 가능"))
                     .careTip("      <h3>\uD83C\uDF3F 스킨답서스란?</h3>\n" +
@@ -272,6 +292,11 @@ public class DataInitConfig {
                     .tips("몬스테라는 덩굴성 식물이므로 지지대가 필요합니다. 코코넛 섬유나 이끼봉을 사용하세요.")
                     .build();
 
+            Model3D monsteraModel = Model3D.builder()
+                    .modelingURL("/models/dynamic/middle/Monstera.glb")
+                    .height(3.5)
+                    .build();
+
             Plant monstera = Plant.builder()
                     .name("몬스테라")
                     .size(PlantSize.MEDIUM)
@@ -285,7 +310,7 @@ public class DataInitConfig {
                             "/images/monstera.jpg",
                             "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
                     ))
-                    .modelingURL("/models/dynamic/middle/Monstera.glb")
+                    .model3D(monsteraModel)
                     .careGuide(monsteraCareGuide)
                     .features(List.of("공기정화 능력 우수", "실내 인테리어에 최적", "관리가 비교적 쉬움", "성장이 빠름"))
                     .careTip("      <h3>\uD83D\uDD73\uFE0F 몬스테라의 특징</h3>\n" +
@@ -318,6 +343,11 @@ public class DataInitConfig {
                     .tips("통풍이 잘 되는 곳에 두세요. 급격한 환경 변화는 피해주세요.")
                     .build();
 
+            Model3D ladysSlipperModel = Model3D.builder()
+                    .modelingURL("/models/dynamic/middle/Travelers_Tree.glb")
+                    .height(3.5)
+                    .build();
+
             Plant ladysSlipper = Plant.builder()
                     .name("여인초")
                     .size(PlantSize.MEDIUM)
@@ -331,7 +361,7 @@ public class DataInitConfig {
                             "/images/ladys-slipper.jpg",
                             "https://images.unsplash.com/photo-1463320726281-696a485928c7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
                     ))
-                    .modelingURL("/models/dynamic/middle/Travelers_Tree.glb")
+                    .model3D(ladysSlipperModel)
                     .careGuide(ladysSlipperCareGuide)
                     .features(List.of("우아한 외형", "햇빛을 좋아함", "중형 크기", "인테리어 효과"))
                     .careTip("      <h3>\uD83C\uDF38 여인초란?</h3>\n" +
@@ -364,6 +394,11 @@ public class DataInitConfig {
                     .tips("적절한 습도와 영양분 공급으로 흰 꽃을 피울 수 있습니다. 꽃이 시들면 줄기째 잘라주세요.")
                     .build();
 
+            Model3D spathiphyllumModel = Model3D.builder()
+                    .modelingURL("/models/dynamic/middle/Spathiphyllum.glb")
+                    .height(3.5)
+                    .build();
+
             Plant spathiphyllum = Plant.builder()
                     .name("스파티필룸")
                     .size(PlantSize.MEDIUM)
@@ -377,7 +412,7 @@ public class DataInitConfig {
                             "/images/spathiphyllum.jpg",
                             "https://images.unsplash.com/photo-1591958911259-bee2173bdccc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
                     ))
-                    .modelingURL("/models/dynamic/middle/Spathiphyllum.glb")
+                    .model3D(spathiphyllumModel)
                     .careGuide(spathiphyllumCareGuide)
                     .features(List.of("아름다운 흰 꽃", "공기정화 최고", "어두운 곳 가능", "관리 쉬움"))
                     .careTip("      <h3>\uD83D\uDD4A\uFE0F 스파티필룸의 매력</h3>\n" +
@@ -410,6 +445,11 @@ public class DataInitConfig {
                     .tips("갈색으로 변한 잎은 제거해주세요. 먼지가 쌓이면 젖은 천으로 닦아주세요.")
                     .build();
 
+            Model3D arecaPalmModel = Model3D.builder()
+                    .modelingURL("/models/dynamic/middle/Areca_Palm.glb")
+                    .height(3.5)
+                    .build();
+
             Plant arecaPalm = Plant.builder()
                     .name("아레카야자")
                     .size(PlantSize.MEDIUM)
@@ -423,7 +463,7 @@ public class DataInitConfig {
                             "/images/areca-palm.jpg",
                             "https://images.unsplash.com/photo-1612363148951-f0e669f6b4b1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
                     ))
-                    .modelingURL("/models/dynamic/middle/Areca_Palm.glb")
+                    .model3D(arecaPalmModel)
                     .careGuide(arecaPalmCareGuide)
                     .features(List.of("열대 분위기", "공기정화 우수", "우아한 외형", "중형 크기"))
                     .careTip("      <h3>\uD83C\uDF34 아레카야자란?</h3>\n" +
@@ -456,6 +496,11 @@ public class DataInitConfig {
                     .tips("정기적으로 젖은 천으로 잎을 닦아주세요. 잎에 윤이 나는 제품을 사용할 수 있습니다.")
                     .build();
 
+            Model3D rubberTreeModel = Model3D.builder()
+                    .modelingURL("/models/dynamic/big/Rubber_Tree.glb")
+                    .height(5.0)
+                    .build();
+
             Plant rubberTree = Plant.builder()
                     .name("고무나무")
                     .size(PlantSize.LARGE)
@@ -469,7 +514,7 @@ public class DataInitConfig {
                             "/images/rubber-tree.jpg",
                             "https://images.unsplash.com/photo-1600411833196-7c1f6b1a8b90?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
                     ))
-                    .modelingURL("/models/dynamic/big/Rubber_Tree.glb")
+                    .model3D(rubberTreeModel)
                     .careGuide(rubberTreeCareGuide)
                     .features(List.of("윤기나는 큰 잎", "관리 매우 쉬움", "공기정화 효과", "대형 식물"))
                     .careTip("      <h3>\uD83C\uDF33 고무나무의 특징</h3>\n" +
@@ -502,6 +547,11 @@ public class DataInitConfig {
                     .tips("실내에서는 꽃이 피기 어렵습니다. 충분한 공간과 햇빛이 필요하며, 최소 4-5년은 키워야 꽃이 핍니다.")
                     .build();
 
+            Model3D birdOfParadiseModel = Model3D.builder()
+                    .modelingURL("/models/dynamic/big/Paradise_Plant.glb")
+                    .height(4.5)
+                    .build();
+
             Plant birdOfParadise = Plant.builder()
                     .name("극락조")
                     .size(PlantSize.LARGE)
@@ -515,7 +565,7 @@ public class DataInitConfig {
                             "/images/bird-of-paradise.jpg",
                             "https://images.unsplash.com/photo-1509423350716-97f2360af3e4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
                     ))
-                    .modelingURL("/models/dynamic/big/Paradise_Plant.glb")
+                    .model3D(birdOfParadiseModel)
                     .careGuide(birdOfParadiseCareGuide)
                     .features(List.of("이국적인 외형", "큰 잎", "독특한 꽃", "대형 식물"))
                     .careTip("      <h3>\uD83E\uDD9C 극락조란?</h3>\n" +
@@ -548,6 +598,11 @@ public class DataInitConfig {
                     .tips("줄기를 자르면 흰 수액이 나옵니다. 수액은 독성이 있으니 피부에 닿지 않도록 주의하세요.")
                     .build();
 
+            Model3D euphorbiaTrigonaModel = Model3D.builder()
+                    .modelingURL("/models/dynamic/big/Euphorbia_Trigona.glb")
+                    .height(5.0)
+                    .build();
+
             Plant euphorbiaTrigona = Plant.builder()
                     .name("유포르비아 트리코나")
                     .size(PlantSize.LARGE)
@@ -561,7 +616,7 @@ public class DataInitConfig {
                             "/images/euphorbia-trigona.jpg",
                             "https://images.unsplash.com/photo-1615671524827-c1fe3973b648?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
                     ))
-                    .modelingURL("/models/dynamic/big/Euphorbia_Trigona.glb")
+                    .model3D(euphorbiaTrigonaModel)
                     .careGuide(euphorbiaTrigonaCareGuide)
                     .features(List.of("독특한 삼각 형태", "관리 매우 쉬움", "대형 크기", "건조에 강함"))
                     .careTip("      <h3>\uD83D\uDD3A 유포르비아 트리코나란?</h3>\n" +
@@ -594,6 +649,11 @@ public class DataInitConfig {
                     .tips("새로 나오는 붉은 잎은 건드리지 마세요. 새순이 나올 때는 비료를 주면 좋습니다.")
                     .build();
 
+            Model3D philodendronModel = Model3D.builder()
+                    .modelingURL("/planterior-assets/models/dynamic/big/Philodendron_Congo.glb")
+                    .height(4.3)
+                    .build();
+
             Plant philodendron = Plant.builder()
                     .name("필로덴드론 콩고")
                     .size(PlantSize.LARGE)
@@ -607,7 +667,7 @@ public class DataInitConfig {
                             "/images/philodendron.jpg",
                             "https://images.unsplash.com/photo-1591958911259-bee2173bdccc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
                     ))
-                    .modelingURL("/models/dynamic/big/Stuckyi.glb")
+                    .model3D(philodendronModel)
                     .careGuide(philodendronCareGuide)
                     .features(List.of("붉은 새순", "공기정화 효과", "관리 쉬움", "대형 식물"))
                     .careTip("      <h3>\uD83D\uDD34 필로덴드론 콩고란?</h3>\n" +
@@ -630,6 +690,139 @@ public class DataInitConfig {
                     .build();
 
             plantRepository.save(philodendron);
+        };
+    }
+
+    @Bean
+    public CommandLineRunner initFurniture(FurnitureRepository furnitureRepository) {
+        return args -> {
+
+            Model3D sofaModel = Model3D.builder()
+                    .modelingURL("/planterior-assets/models/static/Sofa.glb")
+                    .height(2.0)
+                    .canPlaceOn(false)
+                    .onlyOnSideBoard(false)
+                    .build();
+
+            Furniture sofa = Furniture.builder()
+                    .name("소파")
+                    .model3D(sofaModel)
+                    .build();
+
+            furnitureRepository.save(sofa);
+
+            Model3D coffeeTableModel = Model3D.builder()
+                    .modelingURL("/planterior-assets/models/static/Coffee_Table.glb")
+                    .height(1.2)
+                    .canPlaceOn(true)
+                    .onlyOnSideBoard(false)
+                    .build();
+
+            Furniture coffeeTable = Furniture.builder()
+                    .name("커피 테이블")
+                    .model3D(coffeeTableModel)
+                    .build();
+
+            furnitureRepository.save(coffeeTable);
+
+            Model3D sideBoardModel = Model3D.builder()
+                    .modelingURL("/planterior-assets/models/static/Sideboard.glb")
+                    .height(1.5)
+                    .canPlaceOn(true)
+                    .onlyOnSideBoard(false)
+                    .build();
+
+            Furniture sideBoard = Furniture.builder()
+                    .name("사이드보드")
+                    .model3D(sideBoardModel)
+                    .build();
+
+            furnitureRepository.save(sideBoard);
+
+            Model3D TvModel = Model3D.builder()
+                    .modelingURL("/planterior-assets/models/static/Television.glb")
+                    .height(3.0)
+                    .canPlaceOn(false)
+                    .onlyOnSideBoard(true)
+                    .build();
+
+            Furniture Tv = Furniture.builder()
+                    .name("텔레비전")
+                    .model3D(TvModel)
+                    .build();
+
+            furnitureRepository.save(Tv);
+
+            Model3D consoleTableModel = Model3D.builder()
+                    .modelingURL("/planterior-assets/models/static/Console_Table.glb")
+                    .height(2.0)
+                    .canPlaceOn(true)
+                    .onlyOnSideBoard(false)
+                    .build();
+
+            Furniture consoleTable = Furniture.builder()
+                    .name("콘솔 테이블")
+                    .model3D(consoleTableModel)
+                    .build();
+
+            furnitureRepository.save(consoleTable);
+
+            Model3D smallTableModel = Model3D.builder()
+                    .modelingURL("/planterior-assets/models/static/Plant_Table.glb")
+                    .height(0.45)
+                    .canPlaceOn(true)
+                    .onlyOnSideBoard(false)
+                    .build();
+
+            Furniture smallTable = Furniture.builder()
+                    .name("식물 받침대 (소)")
+                    .model3D(smallTableModel)
+                    .build();
+
+            furnitureRepository.save(smallTable);
+
+            Model3D mediumTableModel = Model3D.builder()
+                    .modelingURL("/planterior-assets/models/static/Plant_Table.glb")
+                    .height(0.6)
+                    .canPlaceOn(true)
+                    .onlyOnSideBoard(false)
+                    .build();
+
+            Furniture mediumTable = Furniture.builder()
+                    .name("식물 받침대 (중)")
+                    .model3D(mediumTableModel)
+                    .build();
+
+            furnitureRepository.save(mediumTable);
+
+            Model3D largeTableModel = Model3D.builder()
+                    .modelingURL("/planterior-assets/models/static/Plant_Table.glb")
+                    .height(0.8)
+                    .canPlaceOn(true)
+                    .onlyOnSideBoard(false)
+                    .build();
+
+            Furniture largeTable = Furniture.builder()
+                    .name("식물 받침대 (대)")
+                    .model3D(largeTableModel)
+                    .build();
+
+            furnitureRepository.save(largeTable);
+
+
+            Model3D flowerVaseModel = Model3D.builder()
+                    .modelingURL("/planterior-assets/models/static/Flower_Vase.glb")
+                    .height(1.0)
+                    .canPlaceOn(true)
+                    .onlyOnSideBoard(false)
+                    .build();
+
+            Furniture flowerVase = Furniture.builder()
+                    .name("꽃병")
+                    .model3D(flowerVaseModel)
+                    .build();
+
+            furnitureRepository.save(flowerVase);
         };
     }
 }

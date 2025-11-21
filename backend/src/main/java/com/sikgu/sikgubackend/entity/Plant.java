@@ -64,12 +64,9 @@ public class Plant extends BaseEntity {
 //    @Column(name = "plant_image_url", length = 512)
 //    private String plantImageURL;
 
-//    @OneToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "planterior3D_id")
-//    private Planterior3D planterior3D;
-
-    @Column(name = "modeling_url", length = 512)
-    private String modelingURL;
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "model_id")
+    private Model3D model3D;
 
     @Builder.Default
     @OneToMany(mappedBy = "plant", cascade = CascadeType.ALL, orphanRemoval = true)
