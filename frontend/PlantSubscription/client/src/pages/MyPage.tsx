@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
-import { Leaf, Edit2, Save, X } from "lucide-react";
+import { Leaf, Edit2, Save, X, User, CreditCard } from "lucide-react";
+import { Link } from "wouter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
@@ -62,8 +63,8 @@ export default function MyPage() {
 
   // 구독 정보 조회
   const { data: subscriptions } = useQuery<Subscription[]>({
-    queryKey: ['/api/subscriptions'],
-    queryFn: () => getQueryFn()('/api/subscriptions'), // getQueryFn returns a function
+    queryKey: ['/subscriptions'],
+    queryFn: () => getQueryFn()('/subscriptions'),
     enabled: isAuthenticated,
   });
 
@@ -75,8 +76,8 @@ export default function MyPage() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/subscriptions'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.invalidateQueries({ queryKey: ['/subscriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['/auth/me'] });
       toast({
         title: "구독이 취소되었습니다",
         description: "구독이 성공적으로 취소되었습니다.",

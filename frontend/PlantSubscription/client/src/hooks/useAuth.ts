@@ -171,7 +171,7 @@ export function useAuth() {
 
   // 현재 로그인된 유저 조회
   const { data: user, isLoading } = useQuery<User | null>({
-    queryKey: ["me"],
+    queryKey: ["/auth/me"],
     queryFn: async () => {
       const token = sessionStorage.getItem("bearerToken");
 
@@ -220,7 +220,7 @@ export function useAuth() {
 
     onSuccess: () => {
       // 로그인 직후 강제 재조회 → 여기서 401 나오면 절대 안 됨 (토큰 저장했으니 성공)
-      queryClient.invalidateQueries({ queryKey: ["me"] });
+      queryClient.invalidateQueries({ queryKey: ["/auth/me"] });
     },
   });
 
@@ -250,13 +250,13 @@ export function useAuth() {
     onSuccess: () => {
       sessionStorage.removeItem("bearerToken");
       queryClient.clear();
-      queryClient.setQueryData(["me"], null);
+      queryClient.setQueryData(["/auth/me"], null);
     },
     onError: () => {
       // 백엔드 요청 실패해도 클라이언트 측 로그아웃 처리
       sessionStorage.removeItem("bearerToken");
       queryClient.clear();
-      queryClient.setQueryData(["me"], null);
+      queryClient.setQueryData(["/auth/me"], null);
     },
   });
 
