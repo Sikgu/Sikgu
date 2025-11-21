@@ -28,6 +28,14 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true,
       },
+      '/subscriptions': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
     },
   },
   root: path.resolve(import.meta.dirname, "client"),
