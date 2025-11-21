@@ -2,6 +2,7 @@ package com.sikgu.sikgubackend.config;
 
 import com.sikgu.sikgubackend.security.jwt.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -23,6 +24,9 @@ import org.springframework.web.filter.CorsFilter;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    @Value("${app.frontend.url}")
+    private String frontendBaseUrl;
 
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -81,10 +85,7 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("https://d1ktwhlebd1rc2.cloudfront.net/");
-        //config.addAllowedOrigin("http://127.0.0.1:5000/");
-        // 프론트 개발용
-        config.addAllowedOrigin("http://localhost:5173");
+        config.addAllowedOrigin(frontendBaseUrl);
         config.addAllowedOrigin("http://127.0.0.1:5173");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
