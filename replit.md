@@ -2,11 +2,20 @@
 
 ## Overview
 
-This is a full-stack Korean plant subscription e-commerce service called "식구" (Plant Family). The platform allows users to browse plants, subscribe to monthly plant delivery plans, manage shopping carts, and visualize plants in a 3D interior design tool. The application features a modern, responsive web interface with JWT-based authentication and a comprehensive subscription management system.
+This is a frontend-only Korean plant subscription e-commerce service called "식구" (Plant Family). The platform allows users to browse plants, subscribe to monthly plant delivery plans, manage shopping carts, and visualize plants in a 3D interior design tool. The application features a modern, responsive web interface with JWT-based authentication and a comprehensive subscription management system.
+
+**IMPORTANT**: This project focuses on frontend development only. The backend is developed and maintained separately by teammates and runs independently on localhost:8080. Replit's deployment features are NOT used for this project.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+
+## Project Setup
+
+- **Frontend Development Only**: This Replit workspace is used exclusively for React frontend development
+- **Backend Server**: Managed by teammates, runs on localhost:8080
+- **No Replit Deployment**: This project does not use Replit's deployment/publishing features
+- **Development Server**: Vite dev server runs on port 5000 with proxy to backend on port 8080
 
 ## System Architecture
 
