@@ -21,7 +21,7 @@ public class SubscriptionController {
 
     private final SubscriptionService subscriptionService;
 
-    @Operation(summary = "구독 생성 및 결제 처리 (더미)")
+    @Operation(summary = "구독 생성 및 결제 처리")
     @PostMapping
     public ResponseEntity<SubscriptionResponse> createSubscription(
             @AuthenticationPrincipal UserDetails userDetails,

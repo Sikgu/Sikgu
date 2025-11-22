@@ -28,13 +28,13 @@ public class OrderItem {
     private int quantity;
 
     @Column(nullable = false)
-    private Long coinPriceAtPurchase; // 구매 시점의 개당 코인 가격
+    private Long priceAtPurchase; // 구매 시점의 개당 코인 가격
 
     @Builder
-    public OrderItem(Plant plant, int quantity, Long coinPriceAtPurchase) {
+    public OrderItem(Plant plant, int quantity, Long priceAtPurchase) {
         this.plant = plant;
         this.quantity = quantity;
-        this.coinPriceAtPurchase = coinPriceAtPurchase;
+        this.priceAtPurchase = priceAtPurchase;
     }
 
     void assignOrder(Order order) {

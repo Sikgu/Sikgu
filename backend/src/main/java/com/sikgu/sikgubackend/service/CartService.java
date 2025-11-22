@@ -31,7 +31,7 @@ public class CartService {
     private final PlantRepository plantRepository;
     private final CartItemRepository cartItemRepository;
 
-    // 1. 장바구니 정보 조회 (GET /carts)
+    // 장바구니 정보 조회 (GET /carts)
     @Transactional(readOnly = true)
     public CartDto getShoppingCart(String email) {
         log.debug("SERVICE: Fetching shopping cart for user: {}", email);
@@ -74,7 +74,7 @@ public class CartService {
         return new CartDto(email, itemDtos, totalPrice);
     }
 
-    // 2. 장바구니 항목 추가 (POST /carts)
+    // 장바구니 항목 추가 (POST /carts)
     @Transactional
     public CartDto addItemToCart(String email, CartItemAddRequest request) {
         log.info("SERVICE: Adding item {} to cart for user: {}", request.getPlantId(), email);
@@ -121,7 +121,7 @@ public class CartService {
         return getShoppingCart(email);
     }
 
-    // 3. 수량 감소 (PATCH /carts/{plantId}/quantity)
+    // 수량 감소 (PATCH /carts/{plantId}/quantity)
     @Transactional
     public CartDto decreaseItemQuantity(String email, Long plantId) {
         log.info("SERVICE: Decreasing quantity of item {} for user: {}", plantId, email);
@@ -155,7 +155,7 @@ public class CartService {
         return getShoppingCart(email);
     }
 
-    // 4. 항목 전체 제거 (DELETE /carts/{plantId})
+    // 항목 전체 제거 (DELETE /carts/{plantId})
     @Transactional
     public CartDto removeItemFromCart(String email, Long plantId) {
         log.warn("SERVICE: Full item removal request for item {} from user: {}", plantId, email); // WARN level for DELETE
@@ -183,7 +183,7 @@ public class CartService {
         return getShoppingCart(email);
     }
 
-    // 5. 장바구니 전체 비우기 (DELETE /carts)
+    // 장바구니 전체 비우기 (DELETE /carts)
     @Transactional
     public CartDto clearCart(String email) {
         log.warn("SERVICE: Full cart clear request for user: {}", email); // WARN level for full DELETE
@@ -201,5 +201,30 @@ public class CartService {
         log.info("CART CLEAR SUCCESS: Cart successfully emptied for user: {}", email);
 
         return getShoppingCart(email);
+    }
+
+    public Optional<Cart> getCartEntityByEmail(String email) {
+        return cartRepository.findByUserEmail(email);
+    }
+
+    @Transactional(readOnly = true)
+    public long calculateTotalCost(String email) {
+        Cart cart = cartRepository.findByUserEmail(email)
+                .orElseThrow(() -> {
+                    log.warn("COST CALC FAILED: Cart not found for user: {}", email);
+                    return new IllegalArgumentException("사용자의 장바구니를 찾을 수 없습니다.");
+                });
+
+        if (cart.getItems().isEmpty()) {
+            return 0L;
+        }
+
+        // 장바구니 품목을 순회하며 코인 가격을 합산
+        long totalCost = cart.getItems().stream()
+                .mapToLong(item -> item.getPlant().getCoins() * item.getQuantity())
+                .sum();
+
+        log.debug("CART COST CALC: Total cost {} calculated for user: {}", totalCost, email);
+        return totalCost;
     }
 }

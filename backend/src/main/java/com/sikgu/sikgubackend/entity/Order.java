@@ -27,7 +27,7 @@ public class Order extends BaseEntity {
     private User user;
 
     @Column(nullable = false)
-    private Long totalCoinAmount;
+    private Long totalAmount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -40,9 +40,9 @@ public class Order extends BaseEntity {
     private List<OrderItem> items = new ArrayList<>();
 
     @Builder
-    public Order(User user, Long totalCoinAmount, OrderStatus status) {
+    public Order(User user, Long totalAmount, OrderStatus status) {
         this.user = user;
-        this.totalCoinAmount = totalCoinAmount;
+        this.totalAmount = totalAmount;
         this.status = status;
         this.orderDate = LocalDateTime.now();
     }

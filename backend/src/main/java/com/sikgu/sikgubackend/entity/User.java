@@ -31,7 +31,7 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    private Long coins;
+    private Long coins = 0L;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subscription_id")
@@ -43,8 +43,10 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SupportQnA> supportQnAs = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Cart> carts = new ArrayList<>();
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Cart carts = Cart.builder()
+            .user(this)
+            .build();
 
 
     @Builder
@@ -68,10 +70,6 @@ public class User extends BaseEntity {
     public void addSupportQnA(SupportQnA supportQnA) {
         this.supportQnAs.add(supportQnA);
         supportQnA.setUser(this);
-    }
-
-    public void addToCart(Cart cart) {
-        this.carts.add(cart);
     }
 
     public void addCoins(long amount) {
