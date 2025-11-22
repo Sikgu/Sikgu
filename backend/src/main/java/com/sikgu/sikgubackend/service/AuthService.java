@@ -1,9 +1,9 @@
 package com.sikgu.sikgubackend.service;
 
-import com.sikgu.sikgubackend.dto.LoginRequest;
-import com.sikgu.sikgubackend.dto.LoginResponse;
-import com.sikgu.sikgubackend.dto.SignupRequest;
-import com.sikgu.sikgubackend.dto.UserDto;
+import com.sikgu.sikgubackend.dto.request.LoginRequest;
+import com.sikgu.sikgubackend.dto.response.LoginResponse;
+import com.sikgu.sikgubackend.dto.request.SignupRequest;
+import com.sikgu.sikgubackend.dto.response.UserDto;
 import com.sikgu.sikgubackend.entity.PasswordResetToken;
 import com.sikgu.sikgubackend.entity.User;
 import com.sikgu.sikgubackend.repository.PasswordResetTokenRepository;

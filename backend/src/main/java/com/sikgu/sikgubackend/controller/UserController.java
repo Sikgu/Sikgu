@@ -1,7 +1,7 @@
 package com.sikgu.sikgubackend.controller;
 
-import com.sikgu.sikgubackend.dto.InfoRequest;
-import com.sikgu.sikgubackend.dto.UserDto;
+import com.sikgu.sikgubackend.dto.request.InfoRequest;
+import com.sikgu.sikgubackend.dto.response.UserDto;
 import com.sikgu.sikgubackend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;

@@ -1,8 +1,8 @@
 package com.sikgu.sikgubackend.service;
 
-import com.sikgu.sikgubackend.dto.CartDto;
-import com.sikgu.sikgubackend.dto.CartItemAddRequest;
-import com.sikgu.sikgubackend.dto.CartItemDto;
+import com.sikgu.sikgubackend.dto.response.CartDto;
+import com.sikgu.sikgubackend.dto.request.CartItemAddRequest;
+import com.sikgu.sikgubackend.dto.response.CartItemDto;
 import com.sikgu.sikgubackend.entity.Cart;
 import com.sikgu.sikgubackend.entity.CartItem;
 import com.sikgu.sikgubackend.entity.Plant;

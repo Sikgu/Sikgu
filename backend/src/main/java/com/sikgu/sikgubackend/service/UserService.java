@@ -1,8 +1,8 @@
 package com.sikgu.sikgubackend.service;
 
-import com.sikgu.sikgubackend.dto.InfoRequest;
-import com.sikgu.sikgubackend.dto.SignupRequest;
-import com.sikgu.sikgubackend.dto.UserDto;
+import com.sikgu.sikgubackend.dto.request.InfoRequest;
+import com.sikgu.sikgubackend.dto.request.SignupRequest;
+import com.sikgu.sikgubackend.dto.response.UserDto;
 import com.sikgu.sikgubackend.entity.User;
 import com.sikgu.sikgubackend.entity.enums.Role;
 import com.sikgu.sikgubackend.repository.UserRepository;

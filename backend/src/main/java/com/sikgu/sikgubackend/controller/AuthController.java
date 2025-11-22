@@ -1,6 +1,10 @@
 package com.sikgu.sikgubackend.controller;
 
-import com.sikgu.sikgubackend.dto.*;
+import com.sikgu.sikgubackend.dto.request.LoginRequest;
+import com.sikgu.sikgubackend.dto.request.PasswordResetRequest;
+import com.sikgu.sikgubackend.dto.request.SignupRequest;
+import com.sikgu.sikgubackend.dto.response.LoginResponse;
+import com.sikgu.sikgubackend.dto.response.UserDto;
 import com.sikgu.sikgubackend.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;

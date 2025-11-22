@@ -1,6 +1,6 @@
 package com.sikgu.sikgubackend.service;
 
-import com.sikgu.sikgubackend.dto.SubscriptionPaymentRequest;
+import com.sikgu.sikgubackend.dto.request.SubscriptionPaymentRequest;
 import com.sikgu.sikgubackend.entity.Subscription;
 import com.sikgu.sikgubackend.entity.User;
 import com.sikgu.sikgubackend.repository.SubscriptionRepository;

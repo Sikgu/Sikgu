@@ -1,7 +1,7 @@
 package com.sikgu.sikgubackend.controller;
 
-import com.sikgu.sikgubackend.dto.SubscriptionPaymentRequest;
-import com.sikgu.sikgubackend.dto.SubscriptionResponse;
+import com.sikgu.sikgubackend.dto.request.SubscriptionPaymentRequest;
+import com.sikgu.sikgubackend.dto.response.SubscriptionResponse;
 import com.sikgu.sikgubackend.entity.Subscription;
 import com.sikgu.sikgubackend.service.SubscriptionService;
 import io.swagger.v3.oas.annotations.Operation;

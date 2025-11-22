@@ -1,4 +1,4 @@
-package com.sikgu.sikgubackend.dto;
+package com.sikgu.sikgubackend.dto.response;
 
 import com.sikgu.sikgubackend.entity.Subscription;
 import lombok.Getter;

@@ -1,7 +1,7 @@
 package com.sikgu.sikgubackend.controller;
 
-import com.sikgu.sikgubackend.dto.CartDto;
-import com.sikgu.sikgubackend.dto.CartItemAddRequest;
+import com.sikgu.sikgubackend.dto.response.CartDto;
+import com.sikgu.sikgubackend.dto.request.CartItemAddRequest;
 import com.sikgu.sikgubackend.service.CartService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.sikgu.sikgubackend.dto;
+package com.sikgu.sikgubackend.dto.response;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
