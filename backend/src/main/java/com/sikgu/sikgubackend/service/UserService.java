@@ -62,7 +62,8 @@ public class UserService {
                 user.getId(),
                 user.getEmail(),
                 user.getAddress(),
-                user.getPhoneNumber()
+                user.getPhoneNumber(),
+                user.getCoins()
         );
     }
 

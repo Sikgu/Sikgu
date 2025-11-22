@@ -11,7 +11,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function Cart() {
-  const { items, itemCount, totalPrice, removeItem, decreaseQuantity, clearCart, isLoading: cartLoading } = useCart();
+  const { items, itemCount, totalPrice, addItem, removeItem, decreaseQuantity, clearCart, isLoading: cartLoading } = useCart();
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
@@ -56,6 +56,18 @@ export default function Cart() {
       toast({
         title: "오류",
         description: "수량 변경에 실패했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleIncreaseQuantity = async (plantId: number) => {
+    try {
+      await addItem(plantId);
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "수량 증가에 실패했습니다.",
         variant: "destructive",
       });
     }
@@ -138,11 +150,12 @@ export default function Cart() {
                           </h3>
                         </Link>
                         <div className="flex items-center space-x-2 mt-2">
-                          <span className="text-lg font-bold text-forest" data-testid={`cart-item-price-${item.plantId}`}>
-                            ₩{item.itemTotal.toLocaleString()}
+                          <span className="text-lg font-bold text-forest flex items-center gap-1" data-testid={`cart-item-price-${item.plantId}`}>
+                            <Leaf className="h-5 w-5" />
+                            {item.itemTotal}
                           </span>
-                          <span className="text-sm text-gray-500">
-                            (₩{item.plantPrice.toLocaleString()} x {item.quantity})
+                          <span className="text-sm text-gray-500 flex items-center gap-1">
+                            (<Leaf className="h-4 w-4" />{item.plantPrice} x {item.quantity})
                           </span>
                         </div>
                       </div>
@@ -164,7 +177,7 @@ export default function Cart() {
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => toast({ title: "준비 중", description: "수량 증가 기능은 백엔드 API 추가가 필요합니다." })}
+                          onClick={() => handleIncreaseQuantity(item.plantId)}
                           data-testid={`button-increase-${item.plantId}`}
                         >
                           <Plus className="h-4 w-4" />
@@ -213,8 +226,9 @@ export default function Cart() {
                     </div>
                     <div className="flex justify-between items-center text-lg font-semibold">
                       <span data-testid="total-price-label">총 금액</span>
-                      <span className="text-2xl text-forest" data-testid="total-price-amount">
-                        ₩{totalPrice.toLocaleString()}
+                      <span className="text-2xl text-forest flex items-center gap-1" data-testid="total-price-amount">
+                        <Leaf className="h-6 w-6" />
+                        {totalPrice}
                       </span>
                     </div>
                   </div>

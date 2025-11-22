@@ -15,12 +15,26 @@ export default defineConfig({
     },
   },
   server: {
+    host: '0.0.0.0',
+    port: 5173,
     proxy: {
       '/auth': {
         target: 'http://localhost:8080',
         changeOrigin: true,
       },
       '/users': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/carts': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/subscriptions': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/subscriptions/cancellation': {
         target: 'http://localhost:8080',
         changeOrigin: true,
       },
@@ -31,6 +45,9 @@ export default defineConfig({
     },
   },
   root: path.resolve(import.meta.dirname, "client"),
+
+  publicDir: path.resolve(import.meta.dirname, "public"),
+  
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,

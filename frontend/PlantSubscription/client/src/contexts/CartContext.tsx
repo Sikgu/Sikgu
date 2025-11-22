@@ -39,15 +39,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // 장바구니 조회
   const { data: cartData, isLoading, refetch } = useQuery<CartData>({
     queryKey: ["/carts"],
-    queryFn: () => apiRequest("GET", "/carts"),
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/carts");
+      return response.json();
+    },
     enabled: isAuthenticated,
     staleTime: 1000 * 60, // 1분
   });
 
   // 장바구니 항목 추가
   const addItemMutation = useMutation({
-    mutationFn: (plantId: number) =>
-      apiRequest("POST", "/carts", { plantId }),
+    mutationFn: async (plantId: number) => {
+      const response = await apiRequest("POST", "/carts", { plantId });
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/carts"] });
     },
@@ -59,8 +64,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // 수량 감소
   const decreaseQuantityMutation = useMutation({
-    mutationFn: (plantId: number) =>
-      apiRequest("PATCH", `/carts/${plantId}/quantity`),
+    mutationFn: async (plantId: number) => {
+      const response = await apiRequest("PATCH", `/carts/${plantId}/quantity`);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/carts"] });
     },
@@ -72,8 +79,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // 항목 제거
   const removeItemMutation = useMutation({
-    mutationFn: (plantId: number) =>
-      apiRequest("DELETE", `/carts/${plantId}`),
+    mutationFn: async (plantId: number) => {
+      const response = await apiRequest("DELETE", `/carts/${plantId}`);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/carts"] });
     },
@@ -85,7 +94,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // 장바구니 비우기
   const clearCartMutation = useMutation({
-    mutationFn: () => apiRequest("DELETE", "/carts"),
+    mutationFn: async () => {
+      const response = await apiRequest("DELETE", "/carts");
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/carts"] });
     },

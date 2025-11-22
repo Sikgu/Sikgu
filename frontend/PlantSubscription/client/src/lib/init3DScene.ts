@@ -289,37 +289,36 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
     url: string;
     targetHeight: number;
     wallSnap?: boolean;
-    showInToolbar?: boolean;
     canPlaceOn?: boolean;
     onlyOnSideboard?: boolean;
   }
 
   const MODEL_MAP: Record<string, ModelConfig> = {
     // Plants (Big)
-    euphorbia_trigona: { label: '유포르비아 트리고나', url: '/planterior-assets/models/dynamic/big/Euphorbia_Trigona.glb', targetHeight: 5, showInToolbar: true },
-    paradise_plant: { label: '극락조', url: '/planterior-assets/models/dynamic/big/Paradise_Plant.glb', targetHeight: 4.5, showInToolbar: true },
-    rubber_tree: { label: '고무나무', url: '/planterior-assets/models/dynamic/big/Rubber_Tree.glb', targetHeight: 5, showInToolbar: true },
-    philodendron_congo: { label: '필로덴드론 콩고', url: '/planterior-assets/models/dynamic/big/Philodendron_Congo.glb', targetHeight: 4.3, showInToolbar: true },
+    euphorbia_trigona: { label: '유포르비아 트리고나', url: '/planterior-assets/models/dynamic/big/Euphorbia_Trigona.glb', targetHeight: 5 },
+    paradise_plant: { label: '극락조', url: '/planterior-assets/models/dynamic/big/Paradise_Plant.glb', targetHeight: 4.5 },
+    rubber_tree: { label: '고무나무', url: '/planterior-assets/models/dynamic/big/Rubber_Tree.glb', targetHeight: 5 },
+    philodendron_congo: { label: '필로덴드론 콩고', url: '/planterior-assets/models/dynamic/big/Philodendron_Congo.glb', targetHeight: 4.3 },
     // Plants (Middle)
-    areca_palm: { label: '아레카 야자', url: '/planterior-assets/models/dynamic/middle/Areca_Palm.glb', targetHeight: 3.5, showInToolbar: true },
-    monstera: { label: '몬스테라', url: '/planterior-assets/models/dynamic/middle/Monstera.glb', targetHeight: 3.5, showInToolbar: true },
-    spathiphyllum: { label: '스파티필룸', url: '/planterior-assets/models/dynamic/middle/Spathiphyllum.glb', targetHeight: 3.5, showInToolbar: true },
-    travelers_tree: { label: '여인초', url: '/planterior-assets/models/dynamic/middle/Travelers_Tree.glb', targetHeight: 3.5, showInToolbar: true },
+    areca_palm: { label: '아레카 야자', url: '/planterior-assets/models/dynamic/middle/Areca_Palm.glb', targetHeight: 3.5 },
+    monstera: { label: '몬스테라', url: '/planterior-assets/models/dynamic/middle/Monstera.glb', targetHeight: 3.5 },
+    spathiphyllum: { label: '스파티필룸', url: '/planterior-assets/models/dynamic/middle/Spathiphyllum.glb', targetHeight: 3.5 },
+    travelers_tree: { label: '여인초', url: '/planterior-assets/models/dynamic/middle/Travelers_Tree.glb', targetHeight: 3.5 },
     // Plants (Small)
-    calathea_orbifolia: { label: '칼라데아 오르비폴리아', url: '/planterior-assets/models/dynamic/small/Calathea_Orbifolia.glb', targetHeight: 2.2, showInToolbar: true },
-    golden_pothos: { label: '스킨답서스', url: '/planterior-assets/models/dynamic/small/Golden_Pothos.glb', targetHeight: 2.2, showInToolbar: true },
-    mini_cactus: { label: '미니 선인장', url: '/planterior-assets/models/dynamic/small/Mini_Cactus.glb', targetHeight: 2.2, showInToolbar: true },
-    tillandsia: { label: '틸란드시아', url: '/planterior-assets/models/dynamic/small/Tillandsia.glb', targetHeight: 2.2, showInToolbar: true },
+    calathea_orbifolia: { label: '칼라데아 오르비폴리아', url: '/planterior-assets/models/dynamic/small/Calathea_Orbifolia.glb', targetHeight: 2.2 },
+    golden_pothos: { label: '스킨답서스', url: '/planterior-assets/models/dynamic/small/Golden_Pothos.glb', targetHeight: 2.2 },
+    mini_cactus: { label: '미니 선인장', url: '/planterior-assets/models/dynamic/small/Mini_Cactus.glb', targetHeight: 2.2 },
+    tillandsia: { label: '틸란드시아', url: '/planterior-assets/models/dynamic/small/Tillandsia.glb', targetHeight: 2.2 },
     // Furniture
-    sofa: { label: '소파', url: '/planterior-assets/models/static/Sofa.glb', targetHeight: 2, wallSnap: false, showInToolbar: true },
-    coffee_table: { label: '커피 테이블', url: '/planterior-assets/models/static/Coffee_Table.glb', targetHeight: 1.2, showInToolbar: true, canPlaceOn: true },
-    sideboard: { label: '사이드보드', url: '/planterior-assets/models/static/Sideboard.glb', targetHeight: 1.5, showInToolbar: true, canPlaceOn: true },
-    television: { label: '텔레비전', url: '/planterior-assets/models/static/Television.glb', targetHeight: 3, showInToolbar: true, onlyOnSideboard: true },
-    console_table: { label: '콘솔 테이블', url: '/planterior-assets/models/static/Console_Table.glb', targetHeight: 2, showInToolbar: true, canPlaceOn: true },
-    plant_table_small: { label: '식물 받침대 (소)', url: '/planterior-assets/models/static/Plant_Table.glb', targetHeight: 0.45, showInToolbar: true, canPlaceOn: true },
-    plant_table_medium: { label: '식물 받침대 (중)', url: '/planterior-assets/models/static/Plant_Table.glb', targetHeight: 0.6, showInToolbar: true, canPlaceOn: true },
-    plant_table_large: { label: '식물 받침대 (대)', url: '/planterior-assets/models/static/Plant_Table.glb', targetHeight: 0.8, showInToolbar: true, canPlaceOn: true },
-    flower_vase: { label: '꽃병', url: '/planterior-assets/models/static/Flower_Vase.glb', targetHeight: 1.8, showInToolbar: true },
+    sofa: { label: '소파', url: '/planterior-assets/models/static/Sofa.glb', targetHeight: 2},
+    coffee_table: { label: '커피 테이블', url: '/planterior-assets/models/static/Coffee_Table.glb', targetHeight: 1.2, canPlaceOn: true },
+    sideboard: { label: '사이드보드', url: '/planterior-assets/models/static/Sideboard.glb', targetHeight: 1.5, canPlaceOn: true },
+    television: { label: '텔레비전', url: '/planterior-assets/models/static/Television.glb', targetHeight: 3, onlyOnSideboard: true },
+    console_table: { label: '콘솔 테이블', url: '/planterior-assets/models/static/Console_Table.glb', targetHeight: 2, canPlaceOn: true },
+    plant_table_small: { label: '식물 받침대 (소)', url: '/planterior-assets/models/static/Plant_Table.glb', targetHeight: 0.45, canPlaceOn: true },
+    plant_table_medium: { label: '식물 받침대 (중)', url: '/planterior-assets/models/static/Plant_Table.glb', targetHeight: 0.6, canPlaceOn: true },
+    plant_table_large: { label: '식물 받침대 (대)', url: '/planterior-assets/models/static/Plant_Table.glb', targetHeight: 0.8, canPlaceOn: true },
+    flower_vase: { label: '꽃병', url: '/planterior-assets/models/static/Flower_Vase.glb', targetHeight: 1.8 },
   };
 
   const PLANT_STAND_KEYS = new Set(['plant_table_small', 'plant_table_medium', 'plant_table_large']);
@@ -487,14 +486,7 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
       const spawn = (posXZ ?? pointInFrontOfCamera()).clone().add(randJitter());
       placeOnFloor(model, spawn);
 
-      if (cfg.wallSnap) {
-        const side = getNearestWallSide(spawn);
-        if (!model.parent) scene.add(model);
-        placeAgainstWall(model, side);
-      } else {
-        if (!model.parent) scene.add(model);
-      }
-
+      if (!model.parent) scene.add(model);
       model.userData.modelKey = key;
       draggable.push(model);
     } catch (err) {
@@ -821,15 +813,13 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
     wrap.style.padding = '8px';
 
     for (const [key, cfg] of Object.entries(MODEL_MAP)) {
-      if (cfg.showInToolbar) {
-        const btn = document.createElement('button');
-        btn.dataset.model = key;
-        btn.textContent = cfg.label;
-        btn.style.padding = '6px 12px';
-        btn.style.whiteSpace = 'nowrap';
-        btn.style.cursor = 'pointer';
-        wrap.appendChild(btn);
-      }
+      const btn = document.createElement('button');
+      btn.dataset.model = key;
+      btn.textContent = cfg.label;
+      btn.style.padding = '6px 12px';
+      btn.style.whiteSpace = 'nowrap';
+      btn.style.cursor = 'pointer';
+      wrap.appendChild(btn);
     }
     // Remove old if any
     while(toolbarElement.firstChild) toolbarElement.removeChild(toolbarElement.firstChild);

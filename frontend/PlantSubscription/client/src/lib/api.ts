@@ -1,5 +1,7 @@
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// 개발 환경: 프록시 사용 (빈 문자열)
+// 운영 환경: 실제 백엔드 URL 사용
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 /**
  * API 요청을 보내는 유틸리티 함수

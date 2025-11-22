@@ -26,6 +26,60 @@ export default function Payment() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const [formData, setFormData] = useState({
+    cardNumber: '',
+    expiryDate: '',
+    cvc: '',
+    cardholderName: ''
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormData(prevState => ({
+      ...prevState,
+      [id]: value
+    }));
+  };
+
+  const validateForm = () => {
+    if (!formData.cardNumber || !formData.expiryDate || !formData.cvc || !formData.cardholderName) {
+      toast({
+        title: "입력 오류",
+        description: "모든 필드를 입력해주세요.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    // Basic validation for card number format (e.g., 16 digits, optionally with spaces)
+    if (!/^\d{4}[ -]?\d{4}[ -]?\d{4}[ -]?\d{4}$/.test(formData.cardNumber.replace(/\s/g, ''))) {
+      toast({
+        title: "카드 번호 오류",
+        description: "올바른 카드 번호를 입력해주세요.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    // Basic validation for expiry date format (e.g., MM/YY)
+    if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(formData.expiryDate)) {
+      toast({
+        title: "유효기간 오류",
+        description: "유효기간을 MM/YY 형식으로 입력해주세요.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    // Basic validation for CVC (e.g., 3 or 4 digits)
+    if (!/^\d{3,4}$/.test(formData.cvc)) {
+      toast({
+        title: "CVC 오류",
+        description: "올바른 CVC를 입력해주세요.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const plan = params.get('plan');
@@ -38,12 +92,14 @@ export default function Payment() {
   }, [location]);
 
   const createSubscriptionMutation = useMutation({
-    mutationFn: async (data: { planName: string; coinsReceived: number; amount: number }) => {
-      return await apiRequest('POST', '/api/subscriptions', data);
+    mutationFn: async (data: { planId: keyof typeof planDetails | null; cardNumber: string; expirationDate: string; cvc: string; cardHolderName: string; }) => {
+      return await apiRequest('POST', '/subscriptions', data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/subscriptions'] });
+    onSuccess: async (data) => {
+      // 사용자 정보와 구독 정보 새로고침
+      await queryClient.invalidateQueries({ queryKey: ['/auth/me'] });
+      await queryClient.invalidateQueries({ queryKey: ['/subscriptions'] });
+      
       toast({
         title: "결제가 완료되었습니다!",
         description: "코인이 충전되었습니다.",
@@ -65,20 +121,19 @@ export default function Payment() {
 
   const handlePaymentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedPlan) return;
-    
-    const plan = planDetails[selectedPlan];
-    
-    // 구독 만료일 설정 (1달 후)
-    const expiresAt = new Date();
-    expiresAt.setMonth(expiresAt.getMonth() + 1);
-    
+
+    if (!validateForm()) {
+      return;
+    }
+
     createSubscriptionMutation.mutate({
-      planName: plan.title + " 플랜",
-      coinsReceived: plan.coins,
-      amount: plan.value,
-      expiresAt: expiresAt.toISOString(),
+      planId: selectedPlan,
+      cardNumber: formData.cardNumber.replace(/\D/g, ''), // Remove non-digit characters
+      expirationDate: formData.expiryDate,
+      cvc: formData.cvc,
+      cardHolderName: formData.cardholderName
     });
   };
 
@@ -141,7 +196,7 @@ export default function Payment() {
   return (
     <div className="min-h-screen bg-bg-soft">
       <Header />
-      
+
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="mb-8">
           <Link href="/subscription" className="inline-flex items-center text-forest hover:text-forest/80">
@@ -172,7 +227,7 @@ export default function Payment() {
                     <p className="text-xl font-bold text-forest">{plan.price}</p>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>상품 금액</span>
@@ -213,7 +268,7 @@ export default function Payment() {
                       <div className="w-20 h-20 bg-forest/10 rounded-full flex items-center justify-center mx-auto mb-8">
                         <CreditCard className="h-10 w-10 text-forest" />
                       </div>
-                      <Button 
+                      <Button
                         onClick={handlePaymentClick}
                         className="w-full bg-forest text-white hover:bg-forest/90 py-4 text-xl font-semibold"
                         data-testid="button-proceed-payment"
@@ -228,21 +283,27 @@ export default function Payment() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         카드 번호
                       </label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
+                        id="cardNumber"
+                        value={formData.cardNumber}
+                        onChange={handleInputChange}
                         placeholder="1234 5678 9012 3456"
                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
                         data-testid="input-card-number"
                       />
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           유효기간
                         </label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
+                          id="expiryDate"
+                          value={formData.expiryDate}
+                          onChange={handleInputChange}
                           placeholder="MM/YY"
                           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
                           data-testid="input-expiry"
@@ -252,28 +313,34 @@ export default function Payment() {
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           CVC
                         </label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
+                          id="cvc"
+                          value={formData.cvc}
+                          onChange={handleInputChange}
                           placeholder="123"
                           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
                           data-testid="input-cvc"
                         />
                       </div>
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         카드 소유자명
                       </label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
+                        id="cardholderName"
+                        value={formData.cardholderName}
+                        onChange={handleInputChange}
                         placeholder="홍길동"
                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
                         data-testid="input-cardholder-name"
                       />
                     </div>
-                    
-                    <Button 
+
+                    <Button
                       type="submit"
                       className="w-full bg-forest text-white hover:bg-forest/90 py-3 text-lg mt-6"
                       data-testid="button-complete-payment"
@@ -281,8 +348,8 @@ export default function Payment() {
                     >
                       {createSubscriptionMutation.isPending ? "처리 중..." : `${plan.price} 결제 완료`}
                     </Button>
-                    
-                    <Button 
+
+                    <Button
                       type="button"
                       variant="outline"
                       onClick={() => setShowPaymentForm(false)}
@@ -298,7 +365,7 @@ export default function Payment() {
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );

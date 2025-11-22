@@ -61,6 +61,15 @@ public class SubscriptionService {
 
         subscriptionRepository.save(newSubscription);
         log.info("SUBSCRIPTION SUCCESS: New subscription ID {} created for user {}.", newSubscription.getId(), email);
+
+        // 사용자 코인 증가
+        // TODO: 실제 planId에 따른 코인 수를 받아와야 함. 현재는 임시로 100개 추가.
+        // 실제 로직에서는 planId를 기반으로 어떤 플랜인지 조회하고 해당 플랜의 코인 수를 user.addCoins()에 전달해야 합니다.
+        // 예시: Plan plan = planRepository.findById(request.getPlanId()).orElseThrow(...); user.addCoins(plan.getCoinCount());
+        user.addCoins(100); // 임시로 100개 코인 추가
+        userRepository.save(user);
+        log.info("COIN CHARGE: Added 100 coins to user {} after successful subscription.", email);
+
         return newSubscription;
     }
 
