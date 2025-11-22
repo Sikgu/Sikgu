@@ -80,4 +80,11 @@ public class User extends BaseEntity {
         }
         this.coins += amount;
     }
+
+    public void subtractCoins(long amount) {
+        if (this.coins == null) {
+            this.coins = 0L;
+        }
+        this.coins -= amount;
+    }
 }

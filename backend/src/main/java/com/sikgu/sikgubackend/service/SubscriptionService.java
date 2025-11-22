@@ -23,6 +23,7 @@ public class SubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
     private final UserRepository userRepository;
     private final PlanService planService;
+    private final CoinService coinService;
 
     // 더미 결제를 위한 성공 가능 카드 목록 (실제 서비스에서는 DB/PG사 연동 필요)
     private static final List<String> SUCCESS_CARDS = List.of(
@@ -66,9 +67,7 @@ public class SubscriptionService {
         subscriptionRepository.save(newSubscription);
         log.info("SUBSCRIPTION SUCCESS: New subscription ID {} created for user {}.", newSubscription.getId(), email);
 
-        user.addCoins(plan.getCoins());
-        userRepository.save(user);
-        log.info("COIN GAIN SUCCESS: User {} gained {} coins for subscription.", email, plan.getCoins());
+        coinService.addCoins(email, plan.getCoins());
 
         return newSubscription;
     }
