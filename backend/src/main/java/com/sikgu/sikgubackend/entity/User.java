@@ -74,7 +74,7 @@ public class User extends BaseEntity {
         this.carts.add(cart);
     }
 
-    public void addCoins(int amount) {
+    public void addCoins(long amount) {
         if (this.coins == null) {
             this.coins = 0L;
         }

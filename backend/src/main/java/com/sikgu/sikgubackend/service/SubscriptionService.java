@@ -1,6 +1,7 @@
 package com.sikgu.sikgubackend.service;
 
 import com.sikgu.sikgubackend.dto.request.SubscriptionPaymentRequest;
+import com.sikgu.sikgubackend.dto.response.PlanDto;
 import com.sikgu.sikgubackend.entity.Subscription;
 import com.sikgu.sikgubackend.entity.User;
 import com.sikgu.sikgubackend.repository.SubscriptionRepository;
@@ -21,6 +22,7 @@ public class SubscriptionService {
 
     private final SubscriptionRepository subscriptionRepository;
     private final UserRepository userRepository;
+    private final PlanService planService;
 
     // 더미 결제를 위한 성공 가능 카드 목록 (실제 서비스에서는 DB/PG사 연동 필요)
     private static final List<String> SUCCESS_CARDS = List.of(
@@ -46,7 +48,9 @@ public class SubscriptionService {
                     return new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email);
                 });
 
-        Long planPrice = getPlanPrice(request.getPlanId());
+        PlanDto plan = planService.findById(request.getPlanId());
+
+        Long planPrice = plan.getPrice();
 
         if (!isPaymentSuccessful(request)) {
             log.warn("PAYMENT FAILED: Dummy payment simulation failed for user {}.", email);
@@ -62,13 +66,9 @@ public class SubscriptionService {
         subscriptionRepository.save(newSubscription);
         log.info("SUBSCRIPTION SUCCESS: New subscription ID {} created for user {}.", newSubscription.getId(), email);
 
-        // 사용자 코인 증가
-        // TODO: 실제 planId에 따른 코인 수를 받아와야 함. 현재는 임시로 100개 추가.
-        // 실제 로직에서는 planId를 기반으로 어떤 플랜인지 조회하고 해당 플랜의 코인 수를 user.addCoins()에 전달해야 합니다.
-        // 예시: Plan plan = planRepository.findById(request.getPlanId()).orElseThrow(...); user.addCoins(plan.getCoinCount());
-        user.addCoins(100); // 임시로 100개 코인 추가
+        user.addCoins(plan.getCoins());
         userRepository.save(user);
-        log.info("COIN CHARGE: Added 100 coins to user {} after successful subscription.", email);
+        log.info("COIN GAIN SUCCESS: User {} gained {} coins for subscription.", email, plan.getCoins());
 
         return newSubscription;
     }
