@@ -497,55 +497,74 @@ export default function MyPage() {
                         <p className="text-sm text-gray-600 mb-2">구독 내역</p>
                         {profile?.subscriptions && profile.subscriptions.length > 0 ? (
                           <div className="space-y-3">
-                            {profile.subscriptions.map((subscription: Subscription) => (
-                              <div key={subscription.id} className="bg-gray-50 p-4 rounded-lg">
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <p className="font-semibold">플랜 ID: {subscription.planId}</p>
-                                    <p className="text-sm text-gray-600">결제 금액: {subscription.paidAmount}원</p>
-                                    <p className="text-sm text-gray-600">결제 상태: {subscription.paymentStatus}</p>
-                                    <p className="text-sm text-gray-600">
-                                      구독 시작: {new Date(subscription.startDate).toLocaleDateString()}
-                                    </p>
-                                    {subscription.endDate && (
+                            {profile.subscriptions.map((subscription: Subscription) => {
+                              const getPlanName = (planId: number) => {
+                                const coinMap: { [key: number]: number } = {
+                                  1: 1,
+                                  2: 2,
+                                  3: 5,
+                                  4: 10
+                                };
+                                const coins = coinMap[planId] || planId;
+                                return `${coins}코인 플랜`;
+                              };
+
+                              const isCancelled = subscription.paymentStatus === 'CANCELLED' || 
+                                                 subscription.paymentStatus === 'CANCELED_AT_PERIOD_END';
+
+                              return (
+                                <div key={subscription.id} className="bg-gray-50 p-4 rounded-lg">
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <p className="font-semibold">{getPlanName(subscription.planId)}</p>
+                                      <p className="text-sm text-gray-600">결제 금액: {subscription.paidAmount}원</p>
                                       <p className="text-sm text-gray-600">
-                                        구독 종료: {new Date(subscription.endDate).toLocaleDateString()}
+                                        구독 시작: {new Date(subscription.startDate).toLocaleDateString()}
                                       </p>
-                                    )}
-                                  </div>
-                                  {subscription.paymentStatus !== 'CANCELLED' && (
-                                    <AlertDialog>
-                                      <AlertDialogTrigger asChild>
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                        >
-                                          구독 취소
-                                        </Button>
-                                      </AlertDialogTrigger>
-                                      <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                          <AlertDialogTitle>구독을 취소하시겠습니까?</AlertDialogTitle>
-                                          <AlertDialogDescription>
-                                            이 작업은 되돌릴 수 없습니다. 구독을 취소하면 해당 플랜의 혜택을 더 이상 받을 수 없습니다.
-                                          </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                          <AlertDialogCancel>취소</AlertDialogCancel>
-                                          <AlertDialogAction
-                                            onClick={() => cancelSubscriptionMutation.mutate(subscription.id)}
-                                            className="bg-red-600 hover:bg-red-700"
+                                      {subscription.endDate && (
+                                        <p className="text-sm text-gray-600">
+                                          구독 종료: {new Date(subscription.endDate).toLocaleDateString()}
+                                        </p>
+                                      )}
+                                    </div>
+                                    {isCancelled ? (
+                                      <div className="px-3 py-1 bg-gray-200 text-gray-600 rounded text-sm font-medium">
+                                        구독 취소됨
+                                      </div>
+                                    ) : (
+                                      <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                           >
                                             구독 취소
-                                          </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                      </AlertDialogContent>
-                                    </AlertDialog>
-                                  )}
+                                          </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle>구독을 취소하시겠습니까?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                              이 작업은 되돌릴 수 없습니다. 구독을 취소하면 해당 플랜의 혜택을 더 이상 받을 수 없습니다.
+                                            </AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel>취소</AlertDialogCancel>
+                                            <AlertDialogAction
+                                              onClick={() => cancelSubscriptionMutation.mutate(subscription.id)}
+                                              className="bg-red-600 hover:bg-red-700"
+                                            >
+                                              구독 취소
+                                            </AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         ) : (
                           <div className="bg-gray-50 p-4 rounded-lg">
