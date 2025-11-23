@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @RequiredArgsConstructor
-public class OrderCreationResponseDto {
+public class OrderCreationResponse {
 
     // Wrapper/Envelope 필드
     private final boolean success; // 성공 여부 (true/false)
@@ -23,7 +23,7 @@ public class OrderCreationResponseDto {
     private final String message;
 
     // 성공 시 생성자
-    public OrderCreationResponseDto(Order order) {
+    public OrderCreationResponse(Order order) {
         this.success = true; // 성공
         this.error = null;
         this.orderId = order.getId();
@@ -34,7 +34,7 @@ public class OrderCreationResponseDto {
     }
 
     // 실패 시 생성자 (로컬 try-catch에서 사용)
-    public OrderCreationResponseDto(String errorMessage) {
+    public OrderCreationResponse(String errorMessage) {
         this.success = false; // 실패
         this.error = new ErrorDetailsDto(errorMessage);
         this.orderId = null;

@@ -58,13 +58,7 @@ public class UserService {
         log.debug("USER_READ SUCCESS: Profile retrieved for user ID: {}", user.getId());
 
         // User 엔티티를 확장된 UserDto로 변환하여 반환
-        return new UserDto(
-                user.getId(),
-                user.getEmail(),
-                user.getAddress(),
-                user.getPhoneNumber(),
-                user.getCoins()
-        );
+        return new UserDto(user);
     }
 
     // 주소 및 전화번호 변경

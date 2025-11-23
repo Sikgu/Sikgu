@@ -33,9 +33,8 @@ public class User extends BaseEntity {
 
     private Long coins = 0L;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "subscription_id")
-    private Subscription subscription;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Subscription> subscriptions = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviews = new ArrayList<>();
@@ -84,5 +83,10 @@ public class User extends BaseEntity {
             this.coins = 0L;
         }
         this.coins -= amount;
+    }
+
+    public void addSubscription(Subscription subscription) {
+        this.subscriptions.add(subscription);
+        subscription.assignUser(this);
     }
 }
