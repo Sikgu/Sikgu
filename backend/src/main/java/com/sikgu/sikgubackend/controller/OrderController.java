@@ -64,4 +64,21 @@ public class OrderController {
 
         return ResponseEntity.ok(orders);
     }
+
+    @Operation(summary = "특정 주문 취소 및 코인 환불")
+    @DeleteMapping("/{orderId}")
+    public ResponseEntity<OrderHistoryDto> cancelOrder(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long orderId) {
+
+        String email = userDetails.getUsername();
+        log.warn("CONTROLLER: Received cancellation request for Order ID {} from user: {}", orderId, email);
+
+        Order canceledOrder = orderService.cancelOrder(email, orderId);
+
+        // 취소된 Order 엔티티를 DTO로 변환하여 반환
+        OrderHistoryDto responseDto = new OrderHistoryDto(canceledOrder);
+
+        return ResponseEntity.ok(responseDto);
+    }
 }
