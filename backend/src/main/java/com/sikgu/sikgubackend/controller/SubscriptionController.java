@@ -38,15 +38,16 @@ public class SubscriptionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @Operation(summary = "활성 구독 해지 예약")
-    @PostMapping("/cancellation")
+    @Operation(summary = "특정 활성 구독 해지 예약")
+    @PostMapping("/{subscriptionId}/cancellation")
     public ResponseEntity<SubscriptionResponse> scheduleCancellation(
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long subscriptionId) {
 
         String email = userDetails.getUsername();
-        log.warn("API CALL: POST /subscriptions/cancellation - Cancellation scheduled request by user: {}", email);
+        log.warn("API CALL: POST /subscriptions/{}/cancellation - Cancellation scheduled request by user: {}", subscriptionId, email);
 
-        Subscription updatedSubscription = subscriptionService.scheduleCancellation(email);
+        Subscription updatedSubscription = subscriptionService.scheduleCancellation(email, subscriptionId);
 
         SubscriptionResponse response = new SubscriptionResponse(updatedSubscription);
 
