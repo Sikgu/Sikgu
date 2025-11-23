@@ -1,0 +1,112 @@
+/usr/local/bin/npm run dev
+
+> plant-subscription@0.0.0 dev
+> vite
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  VITE v6.4.1  ready in 114 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://192.168.0.176:5173/
+  ➜  press h + enter to show help
+8:41:05 PM [vite] (client) Pre-transform error: /Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/client/src/pages/Cart.tsx: Unexpected token (134:15)
+
+  132 |     onError: (error: any) => {
+  133 |       toast({
+> 134 |         title: "구매 실패",
+      |                ^
+  135 |         description: error.message || "구매 중 오류가 발생했습니다.",
+  136 |         variant: "destructive",
+  137 |       });
+  Plugin: vite:react-babel
+  File: /Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/client/src/pages/Cart.tsx:134:15
+  132|      onError: (error: any) => {
+  133|        toast({
+  134|          title: "구매 실패",
+     |                 ^
+  135|          description: error.message || "구매 중 오류가 발생했습니다.",
+  136|          variant: "destructive",
+8:41:05 PM [vite] Internal server error: /Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/client/src/pages/Cart.tsx: Unexpected token (134:15)
+
+  132 |     onError: (error: any) => {
+  133 |       toast({
+> 134 |         title: "구매 실패",
+      |                ^
+  135 |         description: error.message || "구매 중 오류가 발생했습니다.",
+  136 |         variant: "destructive",
+  137 |       });
+  Plugin: vite:react-babel
+  File: /Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/client/src/pages/Cart.tsx:134:15
+  132|      onError: (error: any) => {
+  133|        toast({
+  134|          title: "구매 실패",
+     |                 ^
+  135|          description: error.message || "구매 중 오류가 발생했습니다.",
+  136|          variant: "destructive",
+      at constructor (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:360:19)
+      at TypeScriptParserMixin.raise (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:3327:19)
+      at TypeScriptParserMixin.unexpected (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:3347:16)
+      at TypeScriptParserMixin.parseIdentifierName (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:11881:12)
+      at TypeScriptParserMixin.parseIdentifier (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:11864:23)
+      at TypeScriptParserMixin.parseBindingAtom (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:7285:17)
+      at TypeScriptParserMixin.parseBindingAtom (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:9778:18)
+      at TypeScriptParserMixin.parseMaybeDefault (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:7366:50)
+      at TypeScriptParserMixin.parseMaybeDefault (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:9808:24)
+      at TypeScriptParserMixin.parseObjectProperty (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:11636:37)
+      at TypeScriptParserMixin.parseObjPropValue (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:11661:100)
+      at TypeScriptParserMixin.parseObjPropValue (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:9579:18)
+      at TypeScriptParserMixin.parseBindingProperty (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:7347:17)
+      at TypeScriptParserMixin.parseObjectLike (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:11514:21)
+      at TypeScriptParserMixin.parseBindingAtom (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:7283:21)
+      at TypeScriptParserMixin.parseBindingAtom (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:9778:18)
+      at TypeScriptParserMixin.parseMaybeDefault (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:7366:50)
+      at TypeScriptParserMixin.parseMaybeDefault (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:9808:24)
+      at TypeScriptParserMixin.parseAssignableListItem (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:9021:23)
+      at TypeScriptParserMixin.parseBindingList (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:7319:24)
+      at TypeScriptParserMixin.tsParseBindingListForSignature (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:7968:24)
+      at TypeScriptParserMixin.tsFillSignature (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:7960:33)
+      at TypeScriptParserMixin.tsParsePropertyOrMethodSignature (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8025:12)
+      at TypeScriptParserMixin.tsParseTypeMember (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8095:17)
+      at TypeScriptParserMixin.tsParseList (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:7777:19)
+      at TypeScriptParserMixin.tsParseObjectTypeMembers (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8104:26)
+      at TypeScriptParserMixin.tsParseTypeLiteral (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8099:25)
+      at TypeScriptParserMixin.tsParseNonArrayType (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8318:106)
+      at TypeScriptParserMixin.tsParseArrayTypeOrHigher (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8348:21)
+      at /Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8404:158
+      at TypeScriptParserMixin.tsInAllowConditionalTypesContext (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8695:14)
+      at TypeScriptParserMixin.tsParseTypeOperatorOrHigher (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8404:114)
+      at TypeScriptParserMixin.tsParseUnionOrIntersectionType (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8411:18)
+      at TypeScriptParserMixin.tsParseIntersectionTypeOrHigher (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8420:17)
+      at TypeScriptParserMixin.tsParseUnionOrIntersectionType (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8411:18)
+      at TypeScriptParserMixin.tsParseUnionTypeOrHigher (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8423:17)
+      at TypeScriptParserMixin.tsParseNonConditionalType (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8590:17)
+      at TypeScriptParserMixin.tsParseType (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8565:23)
+      at /Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8559:31
+      at TypeScriptParserMixin.tsInType (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8677:14)
+      at TypeScriptParserMixin.tsParseTypeAnnotation (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8557:10)
+      at /Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8504:23
+      at TypeScriptParserMixin.tsInType (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8677:14)
+      at TypeScriptParserMixin.tsParseTypeOrTypePredicateAnnotation (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8482:17)
+      at TypeScriptParserMixin.tsFillSignature (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:7962:39)
+      at /Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8255:54
+      at TypeScriptParserMixin.tsInAllowConditionalTypesContext (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8695:14)
+      at TypeScriptParserMixin.tsParseFunctionOrConstructorType (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8255:10)
+      at TypeScriptParserMixin.tsParseNonConditionalType (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8583:19)
+      at TypeScriptParserMixin.tsParseType (/Users/건국대학교/졸프/Sikgu/frontend/PlantSubscription/node_modules/@babel/parser/lib/index.js:8565:23)
+
+
