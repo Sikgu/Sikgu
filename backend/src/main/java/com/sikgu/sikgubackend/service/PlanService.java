@@ -27,7 +27,7 @@ public class PlanService {
         return plans;
     }
 
-    public PlanDto findById(Long planId) {
+    public PlanDto getPlanDetails(Long planId) {
         log.debug("PLAN_READ: Attempting to retrieve plan with ID: {}", planId);
 
         Plan plan = planRepository.findById(planId)

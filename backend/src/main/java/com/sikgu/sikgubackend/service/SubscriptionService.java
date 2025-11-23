@@ -1,6 +1,7 @@
 package com.sikgu.sikgubackend.service;
 
 import com.sikgu.sikgubackend.dto.request.SubscriptionPaymentRequest;
+import com.sikgu.sikgubackend.dto.request.SubscriptionRequest;
 import com.sikgu.sikgubackend.dto.response.PlanDto;
 import com.sikgu.sikgubackend.entity.Subscription;
 import com.sikgu.sikgubackend.entity.User;
@@ -17,7 +18,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class SubscriptionService {
 
     private final SubscriptionRepository subscriptionRepository;
@@ -31,14 +32,6 @@ public class SubscriptionService {
             "0000000000000000"
     );
 
-    // 더미 결제용 임시 plan 가격
-    private Long getPlanPrice(Long planId) {
-        if (planId == 1L) return 4900L;
-        if (planId == 2L) return 9900L;
-        log.warn("PAYMENT ERROR: Requested plan ID {} does not exist.", planId);
-        throw new IllegalArgumentException("존재하지 않는 구독 플랜 ID입니다.");
-    }
-
     @Transactional
     public Subscription createSubscription(String email, SubscriptionPaymentRequest request) {
         log.info("SUBSCRIPTION FLOW: Starting new subscription process for user: {} with plan: {}", email, request.getPlanId());
@@ -49,8 +42,7 @@ public class SubscriptionService {
                     return new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email);
                 });
 
-        PlanDto plan = planService.findById(request.getPlanId());
-
+        PlanDto plan = planService.getPlanDetails(request.getPlanId());
         Long planPrice = plan.getPrice();
 
         if (!isPaymentSuccessful(request)) {
@@ -64,12 +56,17 @@ public class SubscriptionService {
                 .paidAmount(planPrice)
                 .build();
 
-        subscriptionRepository.save(newSubscription);
-        log.info("SUBSCRIPTION SUCCESS: New subscription ID {} created for user {}.", newSubscription.getId(), email);
+        user.addSubscription(newSubscription);
+
+        Subscription savedSubscription = subscriptionRepository.save(newSubscription);
+
+        userRepository.save(user);
+
+        log.info("SUBSCRIPTION SUCCESS: New subscription ID {} created for user {}.", savedSubscription.getId(), email);
 
         coinService.addCoins(email, plan.getCoins());
 
-        return newSubscription;
+        return savedSubscription;
     }
 
     private boolean isPaymentSuccessful(SubscriptionPaymentRequest request) {
@@ -106,5 +103,30 @@ public class SubscriptionService {
         log.info("CANCELLATION SUCCESS: Scheduled termination for subscription ID {} by user {}.", subscription.getId(), email);
 
         return subscription;
+    }
+
+    @Transactional
+    public Subscription subscribe(String userEmail, SubscriptionRequest request) {
+        log.info("SERVICE: Subscription request received for user: {}", userEmail);
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userEmail));
+
+        PlanDto plan = planService.getPlanDetails(request.getPlanId());
+        Long planPrice = plan.getPrice();
+
+        Subscription newSubscription = Subscription.builder()
+                .user(user)
+                .planId(request.getPlanId())
+                .paidAmount(planPrice)
+                .build();
+
+        user.addSubscription(newSubscription);
+
+        Subscription savedSubscription = subscriptionRepository.save(newSubscription);
+        log.info("Subscription ID {} created successfully and mapped to user {}.", savedSubscription.getId(), userEmail);
+        userRepository.save(user);
+
+        return savedSubscription;
     }
 }
