@@ -2,7 +2,6 @@ package com.sikgu.sikgubackend.entity;
 
 import com.sikgu.sikgubackend.entity.base.BaseEntity;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 
 import lombok.*;
 
@@ -17,6 +16,8 @@ public class Model3D extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private String name;
 
     @Column(name = "modeling_url", length = 512)
     private String modelingURL;

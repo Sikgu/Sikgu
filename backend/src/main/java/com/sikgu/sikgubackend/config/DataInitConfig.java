@@ -84,6 +84,7 @@ public class DataInitConfig {
                     .build();
 
             Model3D tillandsiaModel = Model3D.builder()
+                    .name("tillandsia")
                     .modelingURL("/models/dynamic/small/Tillandsia.glb")
                     .height(2.2)
                     .build();
@@ -140,6 +141,7 @@ public class DataInitConfig {
                     .build();
 
             Model3D miniCactusModel = Model3D.builder()
+                    .name("mini_cactus")
                     .modelingURL("/models/dynamic/small/Mini_Cactus.glb")
                     .height(2.2)
                     .build();
@@ -191,6 +193,7 @@ public class DataInitConfig {
                     .build();
 
             Model3D calatheaOrbifoliaModel = Model3D.builder()
+                    .name("calathea_orbifolia")
                     .modelingURL("/models/dynamic/small/Calathea_Orbifolia.glb")
                     .height(2.2)
                     .build();
@@ -242,6 +245,7 @@ public class DataInitConfig {
                     .build();
 
             Model3D scindapsusModel = Model3D.builder()
+                    .name("golden_pothos")
                     .modelingURL("/models/dynamic/small/Golden_Pothos.glb")
                     .height(2.2)
                     .build();
@@ -293,6 +297,7 @@ public class DataInitConfig {
                     .build();
 
             Model3D monsteraModel = Model3D.builder()
+                    .name("monstera")
                     .modelingURL("/models/dynamic/middle/Monstera.glb")
                     .height(3.5)
                     .build();
@@ -344,6 +349,7 @@ public class DataInitConfig {
                     .build();
 
             Model3D ladysSlipperModel = Model3D.builder()
+                    .name("travelers_tree")
                     .modelingURL("/models/dynamic/middle/Travelers_Tree.glb")
                     .height(3.5)
                     .build();
@@ -395,6 +401,7 @@ public class DataInitConfig {
                     .build();
 
             Model3D spathiphyllumModel = Model3D.builder()
+                    .name("spathiphyllum")
                     .modelingURL("/models/dynamic/middle/Spathiphyllum.glb")
                     .height(3.5)
                     .build();
@@ -446,6 +453,7 @@ public class DataInitConfig {
                     .build();
 
             Model3D arecaPalmModel = Model3D.builder()
+                    .name("areca_palm")
                     .modelingURL("/models/dynamic/middle/Areca_Palm.glb")
                     .height(3.5)
                     .build();
@@ -497,6 +505,7 @@ public class DataInitConfig {
                     .build();
 
             Model3D rubberTreeModel = Model3D.builder()
+                    .name("rubber_tree")
                     .modelingURL("/models/dynamic/big/Rubber_Tree.glb")
                     .height(5.0)
                     .build();
@@ -548,6 +557,7 @@ public class DataInitConfig {
                     .build();
 
             Model3D birdOfParadiseModel = Model3D.builder()
+                    .name("paradise_plant")
                     .modelingURL("/models/dynamic/big/Paradise_Plant.glb")
                     .height(4.5)
                     .build();
@@ -599,6 +609,7 @@ public class DataInitConfig {
                     .build();
 
             Model3D euphorbiaTrigonaModel = Model3D.builder()
+                    .name("euphoria_trigona")
                     .modelingURL("/models/dynamic/big/Euphorbia_Trigona.glb")
                     .height(5.0)
                     .build();
@@ -650,6 +661,7 @@ public class DataInitConfig {
                     .build();
 
             Model3D philodendronModel = Model3D.builder()
+                    .name("philodendron_congo")
                     .modelingURL("/planterior-assets/models/dynamic/big/Philodendron_Congo.glb")
                     .height(4.3)
                     .build();
@@ -698,6 +710,7 @@ public class DataInitConfig {
         return args -> {
 
             Model3D sofaModel = Model3D.builder()
+                    .name("sofa")
                     .modelingURL("/planterior-assets/models/static/Sofa.glb")
                     .height(2.0)
                     .canPlaceOn(false)
@@ -712,6 +725,7 @@ public class DataInitConfig {
             furnitureRepository.save(sofa);
 
             Model3D coffeeTableModel = Model3D.builder()
+                    .name("coffee_table")
                     .modelingURL("/planterior-assets/models/static/Coffee_Table.glb")
                     .height(1.2)
                     .canPlaceOn(true)
@@ -726,6 +740,7 @@ public class DataInitConfig {
             furnitureRepository.save(coffeeTable);
 
             Model3D sideBoardModel = Model3D.builder()
+                    .name("sideboard")
                     .modelingURL("/planterior-assets/models/static/Sideboard.glb")
                     .height(1.5)
                     .canPlaceOn(true)
@@ -740,6 +755,7 @@ public class DataInitConfig {
             furnitureRepository.save(sideBoard);
 
             Model3D TvModel = Model3D.builder()
+                    .name("television")
                     .modelingURL("/planterior-assets/models/static/Television.glb")
                     .height(3.0)
                     .canPlaceOn(false)
@@ -754,6 +770,7 @@ public class DataInitConfig {
             furnitureRepository.save(Tv);
 
             Model3D consoleTableModel = Model3D.builder()
+                    .name("console_table")
                     .modelingURL("/planterior-assets/models/static/Console_Table.glb")
                     .height(2.0)
                     .canPlaceOn(true)
@@ -768,6 +785,7 @@ public class DataInitConfig {
             furnitureRepository.save(consoleTable);
 
             Model3D smallTableModel = Model3D.builder()
+                    .name("plant_table_small")
                     .modelingURL("/planterior-assets/models/static/Plant_Table.glb")
                     .height(0.45)
                     .canPlaceOn(true)
@@ -782,6 +800,7 @@ public class DataInitConfig {
             furnitureRepository.save(smallTable);
 
             Model3D mediumTableModel = Model3D.builder()
+                    .name("plant_table_medium")
                     .modelingURL("/planterior-assets/models/static/Plant_Table.glb")
                     .height(0.6)
                     .canPlaceOn(true)
@@ -796,6 +815,7 @@ public class DataInitConfig {
             furnitureRepository.save(mediumTable);
 
             Model3D largeTableModel = Model3D.builder()
+                    .name("plant_table_large")
                     .modelingURL("/planterior-assets/models/static/Plant_Table.glb")
                     .height(0.8)
                     .canPlaceOn(true)
@@ -809,8 +829,8 @@ public class DataInitConfig {
 
             furnitureRepository.save(largeTable);
 
-
             Model3D flowerVaseModel = Model3D.builder()
+                    .name("flower_vase")
                     .modelingURL("/planterior-assets/models/static/Flower_Vase.glb")
                     .height(1.0)
                     .canPlaceOn(true)

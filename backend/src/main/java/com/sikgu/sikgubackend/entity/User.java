@@ -48,6 +48,14 @@ public class User extends BaseEntity {
             .user(this)
             .build();
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "room_id")
+    private Room room = Room.builder()
+            .width(15L)
+            .depth(15L)
+            .height(10L)
+            .build();
+
 
     @Builder
     public User(String email, String password, Role role) {
