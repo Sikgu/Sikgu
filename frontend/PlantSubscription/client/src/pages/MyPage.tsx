@@ -58,6 +58,14 @@ interface OrderHistory {
   items: OrderItem[];
 }
 
+interface OrderCancelResponse {
+  orderId: number;
+  orderDate: string;
+  status: string;
+  totalAmount: number;
+  items: OrderItem[];
+}
+
 export default function MyPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -86,9 +94,7 @@ export default function MyPage() {
   // 구독 취소 mutation
   const cancelSubscriptionMutation = useMutation({
     mutationFn: async (subscriptionId: number) => {
-      return await apiRequest('POST', '/subscriptions/cancellation', {
-        body: JSON.stringify({ subscriptionId }),
-      });
+      return await apiRequest('POST', `/subscriptions/${subscriptionId}/cancellation`);
     },
     onSuccess: async () => {
       // 프로필 정보 다시 가져오기
@@ -117,6 +123,27 @@ export default function MyPage() {
     onError: (error: any) => {
       toast({
         title: "구독 취소 실패",
+        description: error.message || "다시 시도해주세요.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // 주문 취소 mutation
+  const cancelOrderMutation = useMutation({
+    mutationFn: async (orderId: number) => {
+      return await apiRequest('DELETE', `/orders/${orderId}`);
+    },
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ['/orders'] });
+      toast({
+        title: "주문이 취소되었습니다",
+        description: "주문이 성공적으로 취소되었습니다.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "주문 취소 실패",
         description: error.message || "다시 시도해주세요.",
         variant: "destructive",
       });
@@ -608,7 +635,7 @@ export default function MyPage() {
                                   })}
                                 </p>
                               </div>
-                              <div className="text-right">
+                              <div className="flex flex-col items-end gap-2">
                                 <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
                                   order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
                                   order.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
@@ -617,9 +644,19 @@ export default function MyPage() {
                                 }`}>
                                   {order.status === 'PENDING' ? '처리 중' :
                                    order.status === 'COMPLETED' ? '완료' :
-                                   order.status === 'CANCELLED' ? '취소됨' :
+                                   order.status === 'CANCELLED' ? '주문 취소됨' :
                                    order.status}
                                 </span>
+                                {order.status !== 'CANCELLED' && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    onClick={() => cancelOrderMutation.mutate(order.orderId)}
+                                  >
+                                    주문 취소
+                                  </Button>
+                                )}
                               </div>
                             </div>
 
