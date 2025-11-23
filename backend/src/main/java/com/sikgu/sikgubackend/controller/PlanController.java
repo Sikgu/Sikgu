@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Deprecated
 @RestController
 @RequestMapping("/plans")
-//@Tag(name = "미구현", description = "구독 플랜 조회 API")
 public class PlanController {
 
     private final PlanService planService;

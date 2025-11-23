@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Deprecated
 @RestController
 @RequestMapping("/notifications")
-@Tag(name = "미구현", description = "구독 관련 알림 API")
 public class NotificationController {
 
     private final NotificationService notificationService;

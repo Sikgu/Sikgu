@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Deprecated
 @RestController
 @RequestMapping("/plants")
-@Tag(name = "미구현", description = "식물 추천 및 관리 API")
 public class PlantsController {
 
     private final PlantsService plantsService;
