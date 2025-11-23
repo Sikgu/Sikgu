@@ -635,29 +635,17 @@ export default function MyPage() {
                                   })}
                                 </p>
                               </div>
-                              <div className="flex flex-col items-end gap-2">
-                                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                                  order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                                  order.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                                  order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
-                                  'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {order.status === 'PENDING' ? '처리 중' :
-                                   order.status === 'COMPLETED' ? '완료' :
-                                   order.status === 'CANCELLED' ? '주문 취소됨' :
-                                   order.status}
-                                </span>
-                                {order.status !== 'CANCELLED' && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                    onClick={() => cancelOrderMutation.mutate(order.orderId)}
-                                  >
-                                    주문 취소
-                                  </Button>
-                                )}
-                              </div>
+                              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                                order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                order.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                                order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {order.status === 'PENDING' ? '처리 중' :
+                                 order.status === 'COMPLETED' ? '완료' :
+                                 order.status === 'CANCELLED' ? '주문 취소됨' :
+                                 order.status}
+                              </span>
                             </div>
 
                             <div className="border-t pt-3 mb-3">
@@ -680,9 +668,44 @@ export default function MyPage() {
                               </div>
                             </div>
 
-                            <div className="border-t pt-3 flex justify-between items-center">
-                              <p className="font-semibold">총 결제 금액</p>
-                              <p className="text-xl font-bold text-forest">{order.totalAmount} 코인</p>
+                            <div className="border-t pt-3">
+                              <div className="flex justify-between items-center mb-3">
+                                <p className="font-semibold">총 결제 금액</p>
+                                <p className="text-xl font-bold text-forest">{order.totalAmount} 코인</p>
+                              </div>
+                              {order.status !== 'CANCELLED' ? (
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
+                                    >
+                                      주문 취소
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>주문을 취소하시겠습니까?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        이 작업은 되돌릴 수 없습니다. 주문을 취소하면 사용한 코인이 환불됩니다.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>취소</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => cancelOrderMutation.mutate(order.orderId)}
+                                        className="bg-red-600 hover:bg-red-700"
+                                      >
+                                        주문 취소
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              ) : (
+                                <div className="w-full py-2 text-center bg-gray-100 text-gray-600 rounded font-medium">
+                                  주문 취소됨
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}
