@@ -58,7 +58,7 @@ public class Subscription extends BaseEntity {
         this.paymentStatus = "CANCELED_AT_PERIOD_END";
     }
 
-    public void setUser(User user) {
+    public void assignUser(User user) {
         this.user = user;
     }
 }

@@ -87,6 +87,6 @@ public class User extends BaseEntity {
 
     public void addSubscription(Subscription subscription) {
         this.subscriptions.add(subscription);
-        subscription.setUser(this);
+        subscription.assignUser(this);
     }
 }
