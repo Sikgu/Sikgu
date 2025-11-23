@@ -31,15 +31,17 @@ interface UserProfile {
   address: string | null;
   phoneNumber: string | null;
   coins: number;
+  subscriptions?: Subscription[];
 }
 
 interface Subscription {
   id: number;
-  planId: string;
+  planId: number;
   paidAmount: number;
   paymentStatus: string;
   startDate: string;
   endDate: string | null;
+  userEmail: string;
 }
 
 interface OrderItem {
@@ -75,12 +77,6 @@ export default function MyPage() {
   const initialTab = params.get('tab') || 'profile';
   const [activeTab, setActiveTab] = useState(initialTab);
 
-  // 구독 정보 조회
-  const { data: subscriptions } = useQuery<Subscription[]>({
-    queryKey: ['/subscriptions'],
-    enabled: isAuthenticated,
-  });
-
   // 주문 내역 조회
   const { data: orders, isLoading: ordersLoading } = useQuery<OrderHistory[]>({
     queryKey: ['/orders'],
@@ -94,8 +90,24 @@ export default function MyPage() {
         body: JSON.stringify({ subscriptionId }),
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/subscriptions'] });
+    onSuccess: async () => {
+      // 프로필 정보 다시 가져오기
+      try {
+        const response = await apiRequest("GET", "/users/mypage");
+        const data = await response.json();
+        
+        setProfile({
+          id: data.id,
+          email: data.email,
+          address: data.address,
+          phoneNumber: data.phoneNumber,
+          coins: data.coins || 0,
+          subscriptions: data.subscriptions || [],
+        });
+      } catch (error) {
+        console.error("프로필 정보 갱신 실패:", error);
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['/auth/me'] });
       toast({
         title: "구독이 취소되었습니다",
@@ -139,6 +151,7 @@ export default function MyPage() {
           address: data.address,
           phoneNumber: data.phoneNumber,
           coins: data.coins || 0,
+          subscriptions: data.subscriptions || [],
         });
         setEditForm({
           address: data.address || "",
@@ -153,6 +166,7 @@ export default function MyPage() {
           address: user.address,
           phoneNumber: user.phone,
           coins: user.coins || 0,
+          subscriptions: [],
         });
         setEditForm({
           address: user.address || "",
@@ -481,9 +495,9 @@ export default function MyPage() {
 
                       <div>
                         <p className="text-sm text-gray-600 mb-2">구독 내역</p>
-                        {subscriptions && subscriptions.length > 0 ? (
+                        {profile?.subscriptions && profile.subscriptions.length > 0 ? (
                           <div className="space-y-3">
-                            {subscriptions.map((subscription: Subscription) => (
+                            {profile.subscriptions.map((subscription: Subscription) => (
                               <div key={subscription.id} className="bg-gray-50 p-4 rounded-lg">
                                 <div className="flex justify-between items-start">
                                   <div>
