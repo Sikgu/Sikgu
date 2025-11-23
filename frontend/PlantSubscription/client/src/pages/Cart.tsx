@@ -109,33 +109,7 @@ export default function Cart() {
         description: error.message || "구매 중 오류가 발생했습니다.",
         variant: "destructive",
       });
-    }
-  });
-
-  // 이전 코드 제거
-  const handleOldCheckout_REMOVED = () => {
-    const orderItems_old = cart.map(item => ({
-        plantId: item.id,
-        quantity: item.quantity,
-        priceAtPurchase: item.price,
-      }));
-
-      // 실제로는 백엔드 API를 호출하여 주문을 생성하고 코인을 차감해야 함
-      // 여기서는 간단히 장바구니를 비우고 성공 메시지 표시
-      clearCart();
-      toast({
-        title: "구매 완료",
-        description: "주문이 성공적으로 완료되었습니다.",
-      });
-      setLocation("/mypage");
     },
-    onError: (error: any) => {
-      toast({
-        title: "구매 실패",
-        description: error.message || "구매 중 오류가 발생했습니다.",
-        variant: "destructive",
-      });
-    }
   });
 
   const handleCheckout = () => {
