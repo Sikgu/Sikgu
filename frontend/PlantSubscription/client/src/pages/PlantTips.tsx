@@ -11,7 +11,7 @@ const plantTips = [
     name: "틸란드시아",
     title: "틸란드시아 관리법",
     summary: "공중식물 틸란드시아의 특별한 관리 방법",
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+    image: "/images/tillandsia.jpg",
     content: `
       <h3>✨ 틸란드시아란?</h3>
       <p>틸란드시아는 흙 없이도 자랄 수 있는 독특한 공중식물입니다. 공기 중의 수분과 영양분을 흡수하여 생존합니다.</p>
@@ -37,7 +37,7 @@ const plantTips = [
     name: "미니 선인장",
     title: "미니 선인장 키우기",
     summary: "작지만 강한 미니 선인장 관리 비법",
-    image: "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+    image: "/images/mini-cactus.jpg",
     content: `
       <h3>🌵 미니 선인장 특징</h3>
       <p>미니 선인장은 물을 적게 주고 햇빛을 좋아하는 관리하기 쉬운 식물입니다.</p>
@@ -63,7 +63,7 @@ const plantTips = [
     name: "칼라데아 오르비폴리아",
     title: "칼라데아 오르비폴리아 관리법",
     summary: "아름다운 잎무늬 칼라데아의 섬세한 관리법",
-    image: "https://images.unsplash.com/photo-1509423350716-97f2360af3e4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+    image: "/images/calathea-orbifolia.jpg",
     content: `
       <h3>🎨 칼라데아의 매력</h3>
       <p>칼라데아 오르비폴리아는 독특한 줄무늬 잎이 특징인 관엽식물로, 높은 습도를 좋아합니다.</p>
@@ -89,7 +89,7 @@ const plantTips = [
     name: "스킨답서스",
     title: "스킨답서스 키우기",
     summary: "초보자도 쉽게 키울 수 있는 덩굴식물",
-    image: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+    image: "/images/scindapsus.jpg",
     content: `
       <h3>🌿 스킨답서스란?</h3>
       <p>스킨답서스는 관리가 쉽고 공기정화 능력이 뛰어난 덩굴성 식물입니다.</p>
@@ -115,7 +115,7 @@ const plantTips = [
     name: "몬스테라",
     title: "몬스테라 관리 완전정복",
     summary: "인스타그램 스타 몬스테라의 모든 것",
-    image: "https://images.unsplash.com/photo-1512428813834-c702c7702b78?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+    image: "/images/monstera.jpg",
     content: `
       <h3>🕳️ 몬스테라의 특징</h3>
       <p>몬스테라는 구멍이 뚫린 독특한 잎으로 유명한 열대식물입니다. 성장하면서 잎에 구멍과 갈래가 생깁니다.</p>
@@ -141,7 +141,7 @@ const plantTips = [
     name: "여인초",
     title: "여인초 관리법",
     summary: "우아한 자태의 여인초 키우기",
-    image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+    image: "/images/ladys-slipper.jpg",
     content: `
       <h3>🌸 여인초란?</h3>
       <p>여인초는 우아한 잎의 형태와 섬세한 아름다움으로 사랑받는 관엽식물입니다.</p>
@@ -167,7 +167,7 @@ const plantTips = [
     name: "스파티필룸",
     title: "스파티필룸(평화백합) 키우기",
     summary: "우아한 흰 꽃이 피는 스파티필룸 관리법",
-    image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+    image: "/images/spathiphyllum.jpg",
     content: `
       <h3>🕊️ 스파티필룸의 매력</h3>
       <p>스파티필룸은 평화백합이라고도 불리며, 우아한 흰색 꽃이 특징인 공기정화 식물입니다.</p>
@@ -193,7 +193,7 @@ const plantTips = [
     name: "아레카야자",
     title: "아레카야자 관리법",
     summary: "열대 분위기 가득한 아레카야자 키우기",
-    image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+    image: "/images/areca-palm.jpg",
     content: `
       <h3>🌴 아레카야자란?</h3>
       <p>아레카야자는 열대 분위기를 연출하는 대표적인 관엽식물로, 공기정화 능력이 뛰어납니다.</p>
@@ -219,7 +219,7 @@ const plantTips = [
     name: "고무나무",
     title: "고무나무 완벽 관리 가이드",
     summary: "윤기나는 잎이 매력적인 고무나무 키우기",
-    image: "https://images.unsplash.com/photo-1521334884684-d80222895322?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+    image: "/images/rubber-tree.jpg",
     content: `
       <h3>🌳 고무나무의 특징</h3>
       <p>고무나무는 두껍고 윤기나는 잎이 특징인 관엽식물로, 관리가 쉽고 공기정화 효과가 뛰어납니다.</p>
@@ -245,7 +245,7 @@ const plantTips = [
     name: "극락조",
     title: "극락조(스트렐리치아) 관리법",
     summary: "이국적인 아름다움의 극락조 키우기",
-    image: "https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+    image: "/images/bird-of-paradise.jpg",
     content: `
       <h3>🦜 극락조란?</h3>
       <p>극락조는 새의 부리를 닮은 독특한 꽃이 피는 식물로, 큰 잎과 이국적인 분위기가 매력적입니다.</p>
@@ -271,7 +271,7 @@ const plantTips = [
     name: "유포르비아 트리코나",
     title: "유포르비아 트리코나 관리법",
     summary: "독특한 삼각기둥 모양의 다육식물 키우기",
-    image: "https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+    image: "/images/euphorbia-trigona.jpg",
     content: `
       <h3>🔺 유포르비아 트리코나란?</h3>
       <p>유포르비아 트리코나는 삼각기둥 모양의 줄기가 특징인 다육식물로, 독특한 외형으로 인기가 높습니다.</p>
@@ -297,7 +297,7 @@ const plantTips = [
     name: "필로덴드론 콩고",
     title: "필로덴드론 콩고 관리법",
     summary: "붉은 새순이 아름다운 필로덴드론 콩고 키우기",
-    image: "https://images.unsplash.com/photo-1631377819268-d716cd610cd2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+    image: "/images/philodendron.jpg",
     content: `
       <h3>🔴 필로덴드론 콩고란?</h3>
       <p>필로덴드론 콩고는 새로 나오는 잎이 붉은색이었다가 점차 녹색으로 변하는 아름다운 관엽식물입니다.</p>
@@ -384,13 +384,11 @@ export default function PlantTips() {
                   data-testid={`card-tip-${tip.id}`}
                 >
                   <div className="relative">
-                    {/* 이미지 placeholder - 나중에 실제 이미지로 교체 예정 */}
-                    <div className="w-full h-48 bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center">
-                      <div className="text-center text-gray-400">
-                        <Leaf className="h-12 w-12 mx-auto mb-2 text-green-300" />
-                        <p className="text-sm">이미지 준비중</p>
-                      </div>
-                    </div>
+                    <img 
+                      src={tip.image}
+                      alt={tip.name}
+                      className="w-full h-48 object-cover"
+                    />
                   </div>
                   
                   <CardHeader>
