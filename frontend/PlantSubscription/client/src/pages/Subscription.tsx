@@ -13,9 +13,8 @@ const subscriptionPlans = [
     price: "4,900원",
     monthlyPrice: "4,900원/월",
     benefits: [
-      "소형 식물 (선인장, 다육식물) 선택 가능",
+      "소형 식물 (선인장, 다육식물 등) 선택 가능",
       "기본 관리 가이드 제공",
-      "식물 맞춤 리마인더 제공"
     ],
     image: "/images/sprout.png",
     bgColor: "bg-gradient-to-br from-green-50 to-green-100",
@@ -29,9 +28,8 @@ const subscriptionPlans = [
     price: "9,900원",
     monthlyPrice: "9,900원/월",
     benefits: [
-      "중형 식물 (몬스테라, 고무나무) 선택 가능",
-      "기본 관리 가이드 제공", 
-      "식물 맞춤 리마인더 제공"
+      "중형 식물 (몬스테라, 여인초 등) 선택 가능",
+      "기본 관리 가이드 제공",
     ],
     image: "/images/flower.png",
     bgColor: "bg-gradient-to-br from-green-100 to-green-200",
@@ -45,9 +43,8 @@ const subscriptionPlans = [
     price: "23,900원",
     monthlyPrice: "23,900원/월",
     benefits: [
-      "대형 식물 (야자수, 벤자민고무나무) 선택 가능",
+      "대형 식물 (극락조, 고무나무 등) 선택 가능",
       "기본 관리 가이드 제공",
-      "식물 맞춤 리마인더 제공"
     ],
     image: "/images/tree.png",
     bgColor: "bg-gradient-to-br from-green-200 to-green-300",
@@ -61,9 +58,8 @@ const subscriptionPlans = [
     price: "44,900원",
     monthlyPrice: "44,900원/월",
     benefits: [
-      "특별한 대형 식물 (올리브나무, 유칼립투스) 선택 가능",
+      "대형 식물 (극락조, 고무나무 등) 선택 가능",
       "기본 관리 가이드 제공",
-      "식물 맞춤 리마인더 제공"
     ],
     image: "/images/forest.png",
     bgColor: "bg-gradient-to-br from-green-300 to-green-400",
