@@ -184,7 +184,7 @@ export default function Subscription() {
                       </div>
                     </div>
 
-                    <Link href={`/payment?plan=${plan.coins}`} className="block">
+                    <Link href={`/payment?plan=${plan.id}`} className="block">
                       <Button 
                         className="w-full bg-forest text-white hover:bg-forest/90 py-3 font-medium text-lg"
                         data-testid={`subscription-select-${plan.coins}`}
