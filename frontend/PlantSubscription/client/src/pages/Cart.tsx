@@ -7,8 +7,11 @@ import { useCart } from "@/contexts/CartContext";
 import { Trash2, Minus, Plus, ShoppingBag, Leaf } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import {
+  AlertDialog,
+} from "@/components/ui/alert-dialog";
 
 export default function Cart() {
   const { items, itemCount, totalPrice, addItem, removeItem, decreaseQuantity, clearCart, isLoading: cartLoading } = useCart();
@@ -75,44 +78,64 @@ export default function Cart() {
 
   const checkoutMutation = useMutation({
     mutationFn: async () => {
-      // 장바구니의 모든 아이템을 주문으로 변환
-      const orders = items.map(item => ({
-        plantId: item.plantId.toString(),
-        plantName: item.plantName,
-        size: "소형", // 기본값
-        coinsUsed: item.itemTotal,
-        quantity: item.quantity,
-      }));
+      const response = await apiRequest('POST', '/orders/purchase');
 
-      // 각 아이템에 대해 주문 생성
-      const promises = orders.map(order => 
-        apiRequest("POST", "/orders", order)
-      );
-      
-      return Promise.all(promises);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '구매에 실패했습니다.');
+      }
+
+      return await response.json();
     },
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       // 장바구니 비우기
       await clearCart();
-      
-      // 사용자 정보 새로고침 (코인 차감 반영)
-      queryClient.invalidateQueries({ queryKey: ["/auth/me"] });
-      queryClient.invalidateQueries({ queryKey: ["/orders"] });
-      
+
+      // 사용자 정보 갱신 (코인 업데이트)
+      queryClient.invalidateQueries({ queryKey: ['/auth/me'] });
+      queryClient.invalidateQueries({ queryKey: ['/orders'] });
+
       toast({
-        title: "주문이 완료되었습니다",
-        description: "마이페이지에서 주문 내역을 확인하실 수 있습니다.",
+        title: "구매 완료",
+        description: `주문번호 #${data.orderId}로 구매가 완료되었습니다.`,
       });
-      
-      setLocation("/mypage?tab=orders");
+
+      // 마이페이지 주문내역 탭으로 이동
+      setLocation('/mypage?tab=orders');
     },
     onError: (error: any) => {
       toast({
-        title: "주문 실패",
-        description: error.message || "다시 시도해주세요.",
+        title: "구매 실패",
+        description: error.message || "구매 중 오류가 발생했습니다.",
         variant: "destructive",
       });
+    }
+  });
+
+  // 이전 코드 제거
+  const handleOldCheckout_REMOVED = () => {
+    const orderItems_old = cart.map(item => ({
+        plantId: item.id,
+        quantity: item.quantity,
+        priceAtPurchase: item.price,
+      }));
+
+      // 실제로는 백엔드 API를 호출하여 주문을 생성하고 코인을 차감해야 함
+      // 여기서는 간단히 장바구니를 비우고 성공 메시지 표시
+      clearCart();
+      toast({
+        title: "구매 완료",
+        description: "주문이 성공적으로 완료되었습니다.",
+      });
+      setLocation("/mypage");
     },
+    onError: (error: any) => {
+      toast({
+        title: "구매 실패",
+        description: error.message || "구매 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
   });
 
   const handleCheckout = () => {
@@ -161,7 +184,7 @@ export default function Cart() {
   return (
     <div className="min-h-screen bg-bg-soft">
       <Header />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-8" data-testid="cart-title">
           장바구니
@@ -266,7 +289,7 @@ export default function Cart() {
                   <h3 className="text-xl font-bold text-gray-900 mb-4" data-testid="order-summary-title">
                     주문 요약
                   </h3>
-                  
+
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between text-gray-600">
                       <span data-testid="total-items-label">총 상품 수</span>
