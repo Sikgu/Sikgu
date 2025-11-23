@@ -94,31 +94,46 @@ export default function MyPage() {
   // 구독 취소 mutation
   const cancelSubscriptionMutation = useMutation({
     mutationFn: async (subscriptionId: number) => {
-      return await apiRequest('POST', `/subscriptions/${subscriptionId}/cancellation`);
+      const response = await apiRequest('POST', `/subscriptions/${subscriptionId}/cancellation`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '구독 취소에 실패했습니다.');
+      }
+      return await response.json();
     },
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       // 프로필 정보 다시 가져오기
       try {
         const response = await apiRequest("GET", "/users/mypage");
-        const data = await response.json();
+        if (!response.ok) {
+          throw new Error("프로필 정보를 가져올 수 없습니다.");
+        }
+        const userData = await response.json();
         
         setProfile({
-          id: data.id,
-          email: data.email,
-          address: data.address,
-          phoneNumber: data.phoneNumber,
-          coins: data.coins || 0,
-          subscriptions: data.subscriptions || [],
+          id: userData.id,
+          email: userData.email,
+          address: userData.address,
+          phoneNumber: userData.phoneNumber,
+          coins: userData.coins || 0,
+          subscriptions: userData.subscriptions || [],
+        });
+        
+        // 쿼리 캐시도 무효화하여 다른 컴포넌트도 최신 정보 반영
+        queryClient.invalidateQueries({ queryKey: ['/auth/me'] });
+        
+        toast({
+          title: "구독이 취소되었습니다",
+          description: "구독이 성공적으로 취소되었습니다.",
         });
       } catch (error) {
         console.error("프로필 정보 갱신 실패:", error);
+        toast({
+          title: "정보 갱신 실패",
+          description: "구독은 취소되었지만 정보 갱신에 실패했습니다. 페이지를 새로고침해주세요.",
+          variant: "destructive",
+        });
       }
-      
-      queryClient.invalidateQueries({ queryKey: ['/auth/me'] });
-      toast({
-        title: "구독이 취소되었습니다",
-        description: "구독이 성공적으로 취소되었습니다.",
-      });
     },
     onError: (error: any) => {
       toast({
@@ -132,13 +147,35 @@ export default function MyPage() {
   // 주문 취소 mutation
   const cancelOrderMutation = useMutation({
     mutationFn: async (orderId: number) => {
-      return await apiRequest('DELETE', `/orders/${orderId}`);
+      const response = await apiRequest('DELETE', `/orders/${orderId}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '주문 취소에 실패했습니다.');
+      }
+      return await response.json();
     },
-    onSuccess: async () => {
-      queryClient.invalidateQueries({ queryKey: ['/orders'] });
+    onSuccess: async (data) => {
+      // 주문 목록과 사용자 정보(코인) 갱신
+      await queryClient.invalidateQueries({ queryKey: ['/orders'] });
+      await queryClient.invalidateQueries({ queryKey: ['/auth/me'] });
+      
+      // 프로필의 코인 정보도 갱신
+      try {
+        const response = await apiRequest("GET", "/users/mypage");
+        if (response.ok) {
+          const userData = await response.json();
+          setProfile((prev) => prev ? {
+            ...prev,
+            coins: userData.coins || 0,
+          } : null);
+        }
+      } catch (error) {
+        console.error("코인 정보 갱신 실패:", error);
+      }
+      
       toast({
         title: "주문이 취소되었습니다",
-        description: "주문이 성공적으로 취소되었습니다.",
+        description: "주문이 성공적으로 취소되었고 코인이 환불되었습니다.",
       });
     },
     onError: (error: any) => {
@@ -537,7 +574,8 @@ export default function MyPage() {
                               };
 
                               const isCancelled = subscription.paymentStatus === 'CANCELLED' || 
-                                                 subscription.paymentStatus === 'CANCELED_AT_PERIOD_END';
+                                                 subscription.paymentStatus === 'CANCELED_AT_PERIOD_END' ||
+                                                 subscription.paymentStatus === 'CANCELLED_BY_USER';
 
                               return (
                                 <div key={subscription.id} className="bg-gray-50 p-4 rounded-lg">
