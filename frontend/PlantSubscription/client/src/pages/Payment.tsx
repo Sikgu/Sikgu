@@ -85,7 +85,8 @@ export default function Payment() {
     const plan = params.get('plan');
     if (plan) {
       const planNumber = Number(plan);
-      if (planNumber in planDetails) {
+      // planDetails 객체의 키는 1,2,3,4 이므로 올바른 범위 확인
+      if (planNumber >= 1 && planNumber <= 4 && planDetails[planNumber as keyof typeof planDetails]) {
         setSelectedPlan(planNumber as keyof typeof planDetails);
       }
     }

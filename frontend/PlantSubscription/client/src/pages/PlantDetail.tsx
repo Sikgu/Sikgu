@@ -317,42 +317,7 @@ export default function PlantDetail() {
   const plantId = params?.id ? parseInt(params.id) : null;
   const plant = plantDetails.find(p => p.id === plantId);
 
-  const purchaseMutation = useMutation({
-    mutationFn: async (orderData: {
-      plantId: string;
-      plantName: string;
-      size: string;
-      coinsUsed: number;
-      quantity: number;
-    }) => {
-      const response = await apiRequest("POST", "/api/orders", orderData);
-      return response;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
-      toast({
-        title: "구매 완료!",
-        description: "식물이 성공적으로 구매되었습니다.",
-      });
-      setLocation("/mypage?tab=subscription");
-    },
-    onError: (error: any) => {
-      if (error.error === "insufficient_coins") {
-        toast({
-          title: "보유 코인이 부족합니다",
-          description: `현재 코인: ${error.currentCoins}, 필요 코인: ${error.requiredCoins}`,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "구매 실패",
-          description: error.message || "다시 시도해주세요.",
-          variant: "destructive",
-        });
-      }
-    },
-  });
+  
 
   // 식물을 찾지 못한 경우 홈으로 리다이렉트
   useEffect(() => {
@@ -399,26 +364,7 @@ export default function PlantDetail() {
     }
   };
 
-  const handlePurchase = () => {
-    // 로그인 확인
-    if (!isAuthenticated) {
-      toast({
-        title: "로그인이 필요합니다",
-        description: "로그인 후 이용해주세요.",
-        variant: "destructive",
-      });
-      setLocation("/login");
-      return;
-    }
-
-    purchaseMutation.mutate({
-      plantId: plant.id.toString(),
-      plantName: plant.name,
-      size: plant.size,
-      coinsUsed: plant.coins,
-      quantity: 1,
-    });
-  };
+  
 
   return (
     <div className="min-h-screen bg-bg-soft">
@@ -529,11 +475,10 @@ export default function PlantDetail() {
               <div className="space-y-3">
                 <Button
                   onClick={handleAddToCart}
-                  variant="outline"
                   className={`w-full h-12 text-base font-semibold transition-all ${
                     addedToCart 
-                      ? 'bg-forest text-white border-forest' 
-                      : 'border-forest text-forest hover:bg-forest hover:text-white'
+                      ? 'bg-forest text-white' 
+                      : 'bg-forest hover:bg-forest/90 text-white'
                   }`}
                   data-testid="button-add-to-cart"
                 >
@@ -548,14 +493,6 @@ export default function PlantDetail() {
                       장바구니 담기
                     </>
                   )}
-                </Button>
-                
-                <Button
-                  onClick={handlePurchase}
-                  className="w-full h-12 bg-forest hover:bg-forest/90 text-white text-base font-semibold"
-                  data-testid="button-purchase"
-                >
-                  구매하기
                 </Button>
               </div>
             </div>

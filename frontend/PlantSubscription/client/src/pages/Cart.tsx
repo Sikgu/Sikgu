@@ -73,11 +73,59 @@ export default function Cart() {
     }
   };
 
+  const checkoutMutation = useMutation({
+    mutationFn: async () => {
+      // 장바구니의 모든 아이템을 주문으로 변환
+      const orders = items.map(item => ({
+        plantId: item.plantId.toString(),
+        plantName: item.plantName,
+        size: "소형", // 기본값
+        coinsUsed: item.itemTotal,
+        quantity: item.quantity,
+      }));
+
+      // 각 아이템에 대해 주문 생성
+      const promises = orders.map(order => 
+        apiRequest("POST", "/orders", order)
+      );
+      
+      return Promise.all(promises);
+    },
+    onSuccess: async () => {
+      // 장바구니 비우기
+      await clearCart();
+      
+      // 사용자 정보 새로고침 (코인 차감 반영)
+      queryClient.invalidateQueries({ queryKey: ["/auth/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/orders"] });
+      
+      toast({
+        title: "주문이 완료되었습니다",
+        description: "마이페이지에서 주문 내역을 확인하실 수 있습니다.",
+      });
+      
+      setLocation("/mypage?tab=orders");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "주문 실패",
+        description: error.message || "다시 시도해주세요.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCheckout = () => {
-    toast({
-      title: "준비 중",
-      description: "결제 기능은 준비 중입니다.",
-    });
+    if (items.length === 0) {
+      toast({
+        title: "장바구니가 비어있습니다",
+        description: "상품을 추가해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    checkoutMutation.mutate();
   };
 
   if (isLoading || cartLoading) {
@@ -237,8 +285,9 @@ export default function Cart() {
                     onClick={handleCheckout}
                     className="w-full bg-forest text-white hover:bg-forest/90 py-6 text-lg" 
                     data-testid="button-checkout"
+                    disabled={checkoutMutation.isPending}
                   >
-                    결제하기
+                    {checkoutMutation.isPending ? "처리 중..." : "결제하기"}
                   </Button>
 
                   <Link href="/">
