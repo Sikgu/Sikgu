@@ -48,7 +48,7 @@ export default function SubscriptionPlans() {
         <h3 className="text-3xl font-bold text-forest text-center mb-12" data-testid="subscription-title">
           나만의 구독제를 선택하세요!
         </h3>
-        
+
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
           {subscriptionPlans.map((plan) => (
             <div 
@@ -73,7 +73,7 @@ export default function SubscriptionPlans() {
               <p className="text-3xl font-bold text-forest mb-6" data-testid={`text-plan-price-${plan.coins}`}>
                 {plan.price}
               </p>
-              <Link href={`/payment?plan=${plan.coins}`} className="block">
+              <Link href={`/payment?plan=${plan.id}`} className="block">
                 <Button 
                   className="w-full bg-forest text-white hover:bg-forest/90 py-3 font-medium"
                   data-testid={`button-select-${plan.coins}`}
