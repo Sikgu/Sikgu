@@ -13,7 +13,6 @@ import { Leaf, Edit2, Save, X, User, CreditCard, ShoppingBag, Package } from "lu
 import { Link } from "wouter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getQueryFn } from "@/lib/queryClient";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -79,14 +78,12 @@ export default function MyPage() {
   // 구독 정보 조회
   const { data: subscriptions } = useQuery<Subscription[]>({
     queryKey: ['/subscriptions'],
-    queryFn: () => getQueryFn()('/subscriptions'),
     enabled: isAuthenticated,
   });
 
   // 주문 내역 조회
   const { data: orders, isLoading: ordersLoading } = useQuery<OrderHistory[]>({
     queryKey: ['/orders'],
-    queryFn: () => getQueryFn()('/orders'),
     enabled: isAuthenticated,
   });
 
@@ -561,9 +558,9 @@ export default function MyPage() {
                         <Leaf className="h-8 w-8 text-green-600 animate-pulse mr-2" />
                         <p className="text-gray-600">주문 내역을 불러오는 중...</p>
                       </div>
-                    ) : orders && orders.length > 0 ? (
+                    ) : orders && orders?.length > 0 ? (
                       <div className="space-y-4">
-                        {orders.map((order) => (
+                        {orders?.map((order) => (
                           <div key={order.orderId} className="border rounded-lg p-4 bg-gray-50">
                             <div className="flex justify-between items-start mb-4">
                               <div>
