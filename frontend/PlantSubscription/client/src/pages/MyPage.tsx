@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
-import { Leaf, Edit2, Save, X, User, CreditCard } from "lucide-react";
+import { Leaf, Edit2, Save, X, User, CreditCard, ShoppingBag, Package } from "lucide-react";
 import { Link } from "wouter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -43,6 +43,20 @@ interface Subscription {
   endDate: string | null;
 }
 
+interface OrderItem {
+  plantName: string;
+  quantity: number;
+  priceAtPurchase: number;
+}
+
+interface OrderHistory {
+  orderId: number;
+  orderDate: string;
+  status: string;
+  totalAmount: number;
+  items: OrderItem[];
+}
+
 export default function MyPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -66,6 +80,13 @@ export default function MyPage() {
   const { data: subscriptions } = useQuery<Subscription[]>({
     queryKey: ['/subscriptions'],
     queryFn: () => getQueryFn()('/subscriptions'),
+    enabled: isAuthenticated,
+  });
+
+  // 주문 내역 조회
+  const { data: orders, isLoading: ordersLoading } = useQuery<OrderHistory[]>({
+    queryKey: ['/orders'],
+    queryFn: () => getQueryFn()('/orders'),
     enabled: isAuthenticated,
   });
 
@@ -336,9 +357,10 @@ export default function MyPage() {
               setActiveTab(value);
               setLocation(`?tab=${value}`);
             }} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="profile">프로필 정보</TabsTrigger>
                 <TabsTrigger value="subscription">구독 관리</TabsTrigger>
+                <TabsTrigger value="orders">주문내역</TabsTrigger>
               </TabsList>
 
               <TabsContent value="profile" className="space-y-6">
@@ -521,6 +543,90 @@ export default function MyPage() {
                         )}
                       </div>
                     </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="orders" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <ShoppingBag className="h-5 w-5 mr-2" />
+                      주문내역
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {ordersLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Leaf className="h-8 w-8 text-green-600 animate-pulse mr-2" />
+                        <p className="text-gray-600">주문 내역을 불러오는 중...</p>
+                      </div>
+                    ) : orders && orders.length > 0 ? (
+                      <div className="space-y-4">
+                        {orders.map((order) => (
+                          <div key={order.orderId} className="border rounded-lg p-4 bg-gray-50">
+                            <div className="flex justify-between items-start mb-4">
+                              <div>
+                                <p className="font-semibold text-lg">주문 #{order.orderId}</p>
+                                <p className="text-sm text-gray-600">
+                                  주문 날짜: {new Date(order.orderDate).toLocaleString('ko-KR', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                                  order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                  order.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                                  order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {order.status === 'PENDING' ? '처리 중' :
+                                   order.status === 'COMPLETED' ? '완료' :
+                                   order.status === 'CANCELLED' ? '취소됨' :
+                                   order.status}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="border-t pt-3 mb-3">
+                              <p className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                <Package className="h-4 w-4 mr-1" />
+                                주문 항목
+                              </p>
+                              <div className="space-y-2">
+                                {order.items.map((item, index) => (
+                                  <div key={index} className="flex justify-between items-center bg-white p-3 rounded">
+                                    <div>
+                                      <p className="font-medium">{item.plantName}</p>
+                                      <p className="text-sm text-gray-600">수량: {item.quantity}개</p>
+                                    </div>
+                                    <p className="font-semibold text-forest">
+                                      {item.priceAtPurchase * item.quantity} 코인
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="border-t pt-3 flex justify-between items-center">
+                              <p className="font-semibold">총 결제 금액</p>
+                              <p className="text-xl font-bold text-forest">{order.totalAmount} 코인</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <ShoppingBag className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-500 mb-2">주문 내역이 없습니다</p>
+                        <p className="text-sm text-gray-400">코인으로 식물을 구매하면 여기에 표시됩니다</p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
