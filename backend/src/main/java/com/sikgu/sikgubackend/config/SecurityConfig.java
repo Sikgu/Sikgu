@@ -56,7 +56,8 @@ public class SecurityConfig {
                                 "/users/**",
                                 "/subscriptions", "/subscriptions/**",
                                 "/carts", "/carts/**",
-                                "/orders", "/orders/purchase"
+                                "/orders", "/orders/purchase",
+                                "/room"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

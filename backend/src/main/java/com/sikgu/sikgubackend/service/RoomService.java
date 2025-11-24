@@ -53,13 +53,7 @@ public class RoomService {
         coordinateRepository.saveAll(myRoomDto.getCoordinates().stream()
                 .map(c -> {
                     Model3D model = model3DRepository.findByName(c.getName());
-                    Optional<Coordinate> optionalCoordinate = coordinateRepository.findByModel(model);
-                    Coordinate coordinate;
-                    if (optionalCoordinate.isPresent()) {
-                        coordinate = optionalCoordinate.get();
-                        coordinate.updateCoordinate(c.getX(), c.getY(), c.getZ(), c.getRotation());
-                    } else {
-                        coordinate = Coordinate.builder()
+                    return Coordinate.builder()
                                 .room(room)
                                 .model(model)
                                 .x(c.getX())
@@ -67,8 +61,6 @@ public class RoomService {
                                 .z(c.getZ())
                                 .rotation(c.getRotation())
                                 .build();
-                    }
-                    return coordinate;
                 })
                 .collect(Collectors.toList()));
     }
