@@ -1,24 +1,63 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Box, Maximize2, Move3d, User } from "lucide-react";
 import { Link } from "wouter";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { init3DScene } from "@/lib/init3DScene";
+import { init3DScene, SceneControls } from "@/lib/init3DScene"; // SceneControls 타입 임포트
 
 export default function Planterior() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth(); // user 정보도 가져옴
   const appRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const sceneControls = useRef<SceneControls | null>(null); // 컨트롤러 ref 추가
 
   useEffect(() => {
     if (!appRef.current || !toolbarRef.current || !isAuthenticated) return;
 
-    const cleanup = init3DScene(appRef.current, toolbarRef.current);
+    // 1. 씬 초기화 및 컨트롤러 획득
+    const controls = init3DScene(appRef.current, toolbarRef.current);
+    sceneControls.current = controls;
 
+    // 2. [불러오기] 백엔드에서 저장된 방 정보 가져오기
+    const loadSavedRoom = async () => {
+      try {
+        // [수정됨] 여기도 똑같이 sessionStorage에서 가져와야 합니다.
+        const token = sessionStorage.getItem("bearerToken");
+
+        const response = await fetch('/room', { 
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                // [수정됨] 헤더 추가
+                ...(token && { 'Authorization': `Bearer ${token}` }),
+            },
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const roomData = await response.json();
+          // 데이터가 존재하면 3D 씬에 적용
+          if (roomData && controls.load) {
+            // 백엔드에서 받은 객체를 문자열로 변환해서 전달
+            await controls.load(JSON.stringify(roomData));
+            console.log("저장된 방 정보를 불러왔습니다.");
+          }
+        } else {
+          // 404 등이 뜨면 아직 저장된 방이 없는 신규 유저
+          console.log("저장된 방 정보가 없습니다 (신규 생성).");
+        }
+      } catch (error) {
+        console.error("방 정보 불러오기 실패:", error);
+      }
+    };
+
+    loadSavedRoom();
+
+    // 3. 클린업
     return () => {
-      if (cleanup) cleanup();
+      if (controls.cleanup) controls.cleanup();
     };
   }, [isAuthenticated]);
 
@@ -109,11 +148,11 @@ export default function Planterior() {
             
             <div className="bg-white p-5 rounded-xl shadow-md">
               <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-3">
-                <span className="text-xl">📸</span>
+                <span className="text-xl">💾</span>
               </div>
-              <h3 className="text-base font-semibold text-gray-900 mb-2">360도 회전</h3>
+              <h3 className="text-base font-semibold text-gray-900 mb-2">저장 및 불러오기</h3>
               <p className="text-sm text-gray-600">
-                마우스 드래그로 다양한 각도에서 공간을 확인하고 최적의 배치를 찾으세요.
+                우측 하단의 저장 버튼으로 나만의 공간을 저장하고 언제든 다시 불러오세요.
               </p>
             </div>
           </div>

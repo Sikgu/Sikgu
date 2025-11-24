@@ -2,6 +2,13 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
+// [1] 외부에서 사용할 컨트롤러 타입 정의
+export interface SceneControls {
+  cleanup: () => void;
+  save: () => string;
+  load: (jsonString: string) => Promise<void>;
+}
+
 export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement) {
   // --- 1. WebGL Support Check ---
   function checkWebGL() {
@@ -65,7 +72,7 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
   // --- 4. Room Variables & Lights ---
   let ROOM_WIDTH = 15;
   let ROOM_DEPTH = 15;
-  let WALL_HEIGHT = 6;
+  let WALL_HEIGHT = 10;
   const FLOOR_Y = 0;
 
   scene.add(new THREE.AmbientLight(0xffe8c4, 0.35));
@@ -475,20 +482,85 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
     obj.position.set(pos.x, topY + hh + gapY, pos.z);
   }
 
-  async function addModelByKey(key: string, posXZ: THREE.Vector3 | null = null) {
+// // 아까 드린 테스트용 JSON 데이터
+// const TEST_JSON_DATA = {
+//   "room": {
+//     "width": 15,
+//     "depth": 15,
+//     "height": 20
+//   },
+//   "objects": [
+//     {
+//       "modelKey": "sofa",
+//       "position": { "x": -4.0, "y": 1.0, "z": -3.0 },
+//       "rotation": { "y": 90 }
+//     },
+//     {
+//       "modelKey": "coffee_table",
+//       "position": { "x": 2.0, "y": 0.6, "z": 2.0 },
+//       "rotation": { "y": 0 }
+//     },
+//     {
+//       "modelKey": "mini_cactus",
+//       "position": { "x": 2.0, "y": 2.31, "z": 2.0 }, // 테이블 위 좌표
+//       "rotation": { "y": 0 }
+//     },
+//     {
+//       "modelKey": "travelers_tree",
+//       "position": { "x": -5.0, "y": 1.75, "z": 4.0 },
+//       "rotation": { "y": 0 }
+//     }
+//   ]
+// };
+
+
+async function addModelByKey(key: string, options: { 
+      pos?: { x: number, y: number, z: number }, 
+      rotY?: number 
+  } = {}) {
     const cfg = MODEL_MAP[key];
     if (!cfg) return;
+
     try {
       const base = await ensurePrototype(cfg.url);
       const model = base.clone(true);
       normalizeHeight(model, cfg.targetHeight);
 
-      const spawn = (posXZ ?? pointInFrontOfCamera()).clone().add(randJitter());
-      placeOnFloor(model, spawn);
+      // [중요] 위치 설정 로직 분기
+      if (options.pos) {
+        // 1. 저장된 위치가 있으면 그대로 사용 (랜덤 X, 벽 스냅 X)
+        model.position.set(options.pos.x, options.pos.y, options.pos.z);
+      } else {
+        // 2. 신규 생성일 때만 랜덤 배치 및 벽 스냅 적용
+        const spawn = pointInFrontOfCamera().clone().add(randJitter());
+        placeOnFloor(model, spawn);
+        
+        if (cfg.wallSnap) {
+          const side = getNearestWallSide(spawn);
+          placeAgainstWall(model, side);
+        }
+      }
 
-      if (!model.parent) scene.add(model);
+      // 회전값 복원
+      if (options.rotY !== undefined) {
+        model.rotation.y = options.rotY;
+      }
+
       model.userData.modelKey = key;
+      
+      if (!model.parent) scene.add(model);
       draggable.push(model);
+      
+      // reconstructStacking(objects)
+      reconstructStacking(draggable)  
+      
+      // 로딩 중이 아닐 때만 로그 출력 (options.pos가 없으면 신규 생성)
+      if (!options.pos) {
+          logRoomState(`모델 생성: ${cfg.label}`);
+      }
+
+      return model; // 로딩 시 참조를 위해 모델 객체 반환
+
     } catch (err) {
       console.error('Failed to load', key, err);
     }
@@ -702,6 +774,8 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
             selected.userData.placedOn = null;
         }
       }
+
+      logRoomState('객체 이동/배치');
     }
     selected = null;
     dragPlane = null;
@@ -735,6 +809,8 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
           scene.remove(obj);
           const idx = draggable.indexOf(obj);
           if (idx !== -1) draggable.splice(idx, 1);
+
+          logRoomState('객체 삭제');
         }
       }
       return;
@@ -798,6 +874,7 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
                     placedItems.forEach((item: THREE.Object3D) => placeOnTopOf(item, obj, 0.01));
                 }
             }
+            logRoomState('객체 회전');
           }
       }
   });
@@ -847,12 +924,83 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
   controlsDiv.style.fontSize = '14px';
   controlsDiv.style.zIndex = '100'; // Ensure it's on top
   controlsDiv.innerHTML = `
-    <div><label>가로(m): <input type="number" id="rw" value="15" style="width:50px"></label></div>
-    <div><label>세로(m): <input type="number" id="rd" value="15" style="width:50px"></label></div>
-    <div><label>높이(m): <input type="number" id="rh" value="6" style="width:50px"></label></div>
-    <button id="btn-resize" style="cursor:pointer; margin-top:5px;">방 크기 적용</button>
+    <button id="btn-save" style="cursor:pointer; width:100%; padding:8px; background:#4CAF50; color:white; border:none; border-radius:4px; font-weight:bold; margin-bottom:10px;">
+      💾 현재 상태 저장
+    </button>
+    <div style="border-top:1px solid #ddd; padding-top:10px; margin-top:5px;">
+      <div style="margin-bottom:5px;"><strong>방 크기 설정</strong></div>
+      <div style="margin-bottom:5px;"><label>가로(m): <input type="number" id="rw" value="15" style="width:50px"></label></div>
+      <div style="margin-bottom:5px;"><label>세로(m): <input type="number" id="rd" value="15" style="width:50px"></label></div>
+      <div style="margin-bottom:5px;"><label>높이(m): <input type="number" id="rh" value="10" style="width:50px"></label></div>
+      <button id="btn-resize" style="cursor:pointer; width:100%; padding:5px;">적용</button>
+    </div>
   `;
   appElement.appendChild(controlsDiv);
+  appElement.appendChild(controlsDiv);
+
+  // const btnSave = document.getElementById('btn-save');
+  // if (btnSave) {
+  //   btnSave.addEventListener('click', async () => {
+  //     // 1. 현재 씬 상태를 JSON 문자열로 변환
+  //     const jsonString = exportSceneToJson();
+      
+  //     try {
+  //       // 2. 백엔드로 전송 (엔드포인트는 본인 서버에 맞게 수정 필요)
+  //       const response = await fetch('/room', { 
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //         },
+  //         credentials: 'include', 
+  //         body: jsonString // JSON 데이터 본문
+  //       });
+
+  //       if (response.ok) {
+  //         alert('성공적으로 저장되었습니다!');
+  //       } else {
+  //         alert('저장에 실패했습니다. 상태 코드를 확인하세요.');
+  //         console.error('Save failed:', response.status, response.statusText);
+  //       }
+  //     } catch (error) {
+  //       console.error('Error saving room:', error);
+  //       alert('서버 연결 중 오류가 발생했습니다.');
+  //     }
+  //   });
+  // }
+
+  // ... (상단 코드 생략)
+
+  const btnSave = document.getElementById('btn-save');
+  if (btnSave) {
+    btnSave.addEventListener('click', async () => {
+      const jsonString = exportSceneToJson();
+
+      // [수정됨] sessionStorage에서 토큰 가져오기
+      const token = sessionStorage.getItem("bearerToken"); 
+
+      try {
+        const response = await fetch('/room', { 
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            // [수정됨] 토큰이 있으면 헤더에 추가 (없으면 안 보냄)
+            ...(token && { 'Authorization': `Bearer ${token}` }),
+          },
+          credentials: 'include', 
+          body: jsonString
+        });
+
+        if (response.ok) {
+          alert('성공적으로 저장되었습니다!');
+        } else {
+          if (response.status === 403) alert('권한이 없습니다. 다시 로그인해 주세요.');
+          else alert('저장에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('Error saving room:', error);
+      }
+    });
+  }
 
   function updateRoomSize(w: number, d: number, h: number) {
      const minSize = 5, maxSize = 50, minH = 3, maxH = 15;
@@ -1023,15 +1171,199 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
     renderer.render(scene, camera);
   });
 
-  // Cleanup
-  return () => {
-    renderer.setAnimationLoop(null);
-    renderer.dispose();
-    window.removeEventListener('resize', onResize);
-    if (appElement.contains(renderer.domElement)) {
-      appElement.removeChild(renderer.domElement);
+  /** ===== 방 상태 출력 함수 ===== */
+  function logRoomState(action = '') {
+    const state = {
+      action: action || '상태 확인',
+      room: {
+        width: ROOM_WIDTH,
+        depth: ROOM_DEPTH,
+        height: WALL_HEIGHT,
+      },
+      objects: draggable.map((obj) => {
+        const modelKey = obj.userData?.modelKey
+        const cfg = modelKey ? MODEL_MAP[modelKey] : null
+        const placedOn = obj.userData?.placedOn
+        const placedItems = obj.userData?.placedItems || []
+
+        return {
+          modelKey: modelKey || 'unknown',
+          label: cfg?.label || '알 수 없음',
+          position: {
+            x: Math.round(obj.position.x * 100) / 100,
+            y: Math.round(obj.position.y * 100) / 100,
+            z: Math.round(obj.position.z * 100) / 100,
+          },
+          rotation: {
+            y: Math.round(((obj.rotation.y * 180) / Math.PI) * 100) / 100, // 도 단위로 변환
+          },
+          placedOn: placedOn
+            ? {
+                modelKey: placedOn.userData?.modelKey || 'unknown',
+                label:
+                  MODEL_MAP[placedOn.userData?.modelKey]?.label || '알 수 없음',
+              }
+            : null,
+          placedItemsCount: placedItems.length,
+          placedItems: placedItems.map((item) => ({
+            modelKey: item.userData?.modelKey || 'unknown',
+            label: MODEL_MAP[item.userData?.modelKey]?.label || '알 수 없음',
+          })),
+        }
+      }),
     }
-    if (appElement.contains(controlsDiv)) appElement.removeChild(controlsDiv);
-    if (appElement.contains(hint)) appElement.removeChild(hint);
+
+    console.log('=== 방 상태 ===', state)
+    return state
+  }
+
+  function exportSceneToJson() {
+    const data = {
+      room: {
+        width: ROOM_WIDTH,
+        depth: ROOM_DEPTH,
+        height: WALL_HEIGHT,
+      },
+      // 백엔드 DTO 구조에 맞춰서 변환 (objects -> coordinates)
+      coordinates: draggable.map((obj) => ({
+        name: obj.userData.modelKey, // modelKey -> name
+        x: parseFloat(obj.position.x.toFixed(3)),
+        y: parseFloat(obj.position.y.toFixed(3)),
+        z: parseFloat(obj.position.z.toFixed(3)),
+        rotation: parseFloat(obj.rotation.y.toFixed(3)) // rotation.y -> rotation
+      })),
+    };
+    return JSON.stringify(data);
+  }
+
+  async function importSceneFromJson(jsonString: string) {
+    try {
+        const json = JSON.parse(jsonString);
+        
+        // 1. 기존 객체 모두 삭제
+        [...draggable].forEach(obj => scene.remove(obj));
+        draggable.length = 0;
+
+        // 2. 방 크기 복원
+        if (json.room) {
+          updateRoomSize(
+            Number(json.room.width), 
+            Number(json.room.depth), 
+            Number(json.room.height)
+          );
+          // UI 업데이트
+          const rw = document.getElementById('rw') as HTMLInputElement;
+          const rd = document.getElementById('rd') as HTMLInputElement;
+          const rh = document.getElementById('rh') as HTMLInputElement;
+          if(rw) rw.value = json.room.width;
+          if(rd) rd.value = json.room.depth;
+          if(rh) rh.value = json.room.height;
+        }
+
+        // 3. 모델 생성 (백엔드 구조: coordinates 배열, name, x, y, z, rotation)
+        // 혹시 모를 호환성을 위해 json.coordinates가 없으면 json.objects를 보도록 처리
+        const items = json.coordinates || json.objects || [];
+
+        const loadPromises = items.map((item: any) => {
+            // 백엔드: name, 프론트엔드 구버전: modelKey
+            const key = item.name || item.modelKey;
+            
+            // 백엔드: 평탄화된 x,y,z / 프론트엔드 구버전: item.position.x
+            const posX = item.x !== undefined ? item.x : item.position?.x;
+            const posY = item.y !== undefined ? item.y : item.position?.y;
+            const posZ = item.z !== undefined ? item.z : item.position?.z;
+
+            // 백엔드: rotation (float), 프론트엔드 구버전: item.rotation.y
+            const rotY = item.rotation !== undefined ? item.rotation : item.rotation?.y;
+
+            return addModelByKey(key, {
+                pos: { x: posX, y: posY, z: posZ },
+                rotY: rotY
+            });
+        });
+
+        await Promise.all(loadPromises);
+
+        // 4. 관계 재설정 (Stacking)
+        reconstructStacking(draggable);
+
+        console.log("씬 복원 완료 (Backend Format)");
+        logRoomState("불러오기 완료");
+
+    } catch (e) {
+        console.error("JSON 파싱 또는 로딩 실패", e);
+    }
+  }
+
+  function reconstructStacking(objects: THREE.Object3D[]) {
+    // 1. 오차 범위 (약 10cm 이내면 수직으로 겹친다고 판단)
+    const EPSILON = 0.0001; 
+
+    objects.forEach(child => {
+        // 모든 물체 중에서 '나(child)'의 부모가 될 후보들을 찾습니다.
+        const potentialParents = objects.filter(parent => {
+            // 1. 나 자신은 제외
+            if (child === parent) return false;
+
+            // 2. Y축 높이 비교: 나보다 아래에 있어야 함 (부모 < 자식)
+            if (parent.position.y >= child.position.y) return false;
+
+            // 3. X, Z축 위치 비교: 수직으로 겹쳐야 함
+            const dx = Math.abs(child.position.x - parent.position.x);
+            const dz = Math.abs(child.position.z - parent.position.z);
+
+            return dx < EPSILON && dz < EPSILON;
+        });
+
+        // 후보가 없다면 바닥에 있는 것이므로 패스
+        if (potentialParents.length === 0) return;
+
+        // 후보가 여러 개라면(예: 바닥 -> 탁자 -> 책), 그중에서 가장 높이 있는(Y가 가장 큰) 것이 내 바로 밑의 부모입니다.
+        // Y좌표 내림차순 정렬
+        potentialParents.sort((a, b) => b.position.y - a.position.y);
+        
+        const realParent = potentialParents[0]; // 가장 가까운 바로 아래 물체
+
+        // === 관계 형성 (move 함수가 작동하기 위해 필수) ===
+        // 1. 자식에게 부모 정보 입력
+        child.userData.placedOn = realParent;
+
+        // 2. 부모에게 자식 목록 추가
+        if (!realParent.userData.placedItems) {
+            realParent.userData.placedItems = [];
+        }
+        // 중복 방지 후 추가
+        if (!realParent.userData.placedItems.includes(child)) {
+            realParent.userData.placedItems.push(child);
+        }
+    });
+  }
+  
+  // Cleanup 및 외부 함수 노출
+  return {
+      cleanup: () => {
+        renderer.setAnimationLoop(null);
+        renderer.dispose();
+        window.removeEventListener('resize', onResize);
+        if (appElement.contains(renderer.domElement)) {
+          appElement.removeChild(renderer.domElement);
+        }
+        if (appElement.contains(controlsDiv)) appElement.removeChild(controlsDiv);
+        if (appElement.contains(hint)) appElement.removeChild(hint);
+      },
+      save: exportSceneToJson, // 이제 이 함수를 호출하면 JSON 문자열을 줌
+      load: importSceneFromJson // 이 함수에 JSON 문자열을 주면 화면이 복구됨
   };
+  
+  // // Cleanup
+  // return () => {
+  //   renderer.setAnimationLoop(null);
+  //   renderer.dispose();
+  //   window.removeEventListener('resize', onResize);
+  //   if (appElement.contains(renderer.domElement)) {
+  //     appElement.removeChild(renderer.domElement);
+  //   }
+  //   if (appElement.contains(controlsDiv)) appElement.removeChild(controlsDiv);
+  //   if (appElement.contains(hint)) appElement.removeChild(hint);
+  // }
 }

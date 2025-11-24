@@ -45,6 +45,10 @@ export default defineConfig({
       '/orders': {
         target: 'http://localhost:8080',
         changeOrigin: true,
+      },      
+      '/room': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
       },
     },
   },
