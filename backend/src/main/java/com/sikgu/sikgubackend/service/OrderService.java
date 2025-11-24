@@ -102,4 +102,44 @@ public class OrderService {
                 .map(OrderHistoryDto::new)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * 주문을 취소하고 사용자에게 코인을 환불합니다.
+     * @param email 취소를 요청한 사용자 이메일 (소유권 검증용)
+     * @param orderId 취소할 주문 ID
+     * @return 취소된 Order 엔티티
+     */
+    @Transactional
+    public Order cancelOrder(String email, Long orderId) {
+        log.warn("ORDER CANCELLATION: Starting cancellation for Order ID {} by user {}", orderId, email);
+
+        // 주문 조회 및 소유권 확인
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NoSuchElementException("주문 ID " + orderId + "를 찾을 수 없습니다."));
+
+        // 소유권 검증
+        if (!order.getUser().getEmail().equals(email)) {
+            log.error("ORDER CANCELLATION FAILED: Access denied for Order ID {} by user {}", orderId, email);
+            // 비즈니스 로직에서 소유권이 없을 경우 403 Forbidden을 유발할 수 있는 예외를 던짐
+            throw new IllegalArgumentException("요청하신 주문에 대한 접근 권한이 없습니다.");
+        }
+
+        // 주문 상태 확인 (취소 가능 상태인지 검증)
+        if (order.getStatus() != OrderStatus.PENDING) {
+            log.warn("ORDER CANCELLATION FAILED: Order ID {} status is {} and cannot be canceled.", orderId, order.getStatus());
+            throw new IllegalStateException("주문은 " + OrderStatus.PENDING + " 상태일 때만 취소 가능합니다. 현재 상태: " + order.getStatus());
+        }
+
+        // 코인 환불
+        Long refundAmount = order.getTotalAmount();
+        coinService.addCoins(email, refundAmount);
+        log.info("ORDER REFUND SUCCESS: {} coins refunded to user {}.", refundAmount, email);
+
+        // 상태 변경 및 DB 저장
+        order.updateStatus(OrderStatus.CANCELED);
+        Order canceledOrder = orderRepository.save(order);
+
+        log.warn("ORDER CANCELLATION SUCCESS: Order ID {} successfully CANCELED.", orderId);
+        return canceledOrder;
+    }
 }

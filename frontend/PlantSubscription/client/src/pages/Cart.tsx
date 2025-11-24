@@ -7,8 +7,11 @@ import { useCart } from "@/contexts/CartContext";
 import { Trash2, Minus, Plus, ShoppingBag, Leaf } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import {
+  AlertDialog,
+} from "@/components/ui/alert-dialog";
 
 export default function Cart() {
   const { items, itemCount, totalPrice, addItem, removeItem, decreaseQuantity, clearCart, isLoading: cartLoading } = useCart();
@@ -73,11 +76,53 @@ export default function Cart() {
     }
   };
 
+  const checkoutMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/orders/purchase');
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '구매에 실패했습니다.');
+      }
+
+      return await response.json();
+    },
+    onSuccess: async (data) => {
+      // 장바구니 비우기
+      await clearCart();
+
+      // 사용자 정보 갱신 (코인 업데이트)
+      queryClient.invalidateQueries({ queryKey: ['/auth/me'] });
+      queryClient.invalidateQueries({ queryKey: ['/orders'] });
+
+      toast({
+        title: "구매 완료",
+        description: `주문번호 #${data.orderId}로 구매가 완료되었습니다.`,
+      });
+
+      // 마이페이지 주문내역 탭으로 이동
+      setLocation('/mypage?tab=orders');
+    },
+    onError: (error: any) => {
+      toast({
+        title: "구매 실패",
+        description: error.message || "구매 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCheckout = () => {
-    toast({
-      title: "준비 중",
-      description: "결제 기능은 준비 중입니다.",
-    });
+    if (items.length === 0) {
+      toast({
+        title: "장바구니가 비어있습니다",
+        description: "상품을 추가해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    checkoutMutation.mutate();
   };
 
   if (isLoading || cartLoading) {
@@ -113,7 +158,7 @@ export default function Cart() {
   return (
     <div className="min-h-screen bg-bg-soft">
       <Header />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-8" data-testid="cart-title">
           장바구니
@@ -218,7 +263,7 @@ export default function Cart() {
                   <h3 className="text-xl font-bold text-gray-900 mb-4" data-testid="order-summary-title">
                     주문 요약
                   </h3>
-                  
+
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between text-gray-600">
                       <span data-testid="total-items-label">총 상품 수</span>
@@ -237,8 +282,9 @@ export default function Cart() {
                     onClick={handleCheckout}
                     className="w-full bg-forest text-white hover:bg-forest/90 py-6 text-lg" 
                     data-testid="button-checkout"
+                    disabled={checkoutMutation.isPending}
                   >
-                    결제하기
+                    {checkoutMutation.isPending ? "처리 중..." : "결제하기"}
                   </Button>
 
                   <Link href="/">

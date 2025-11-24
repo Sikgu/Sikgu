@@ -14,8 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 const planDetails = {
   1: { title: "1코인", price: "4,900원", value: 4900, coins: 1 },
   2: { title: "2코인", price: "9,900원", value: 9900, coins: 2 },
-  5: { title: "5코인", price: "23,900원", value: 23900, coins: 5 },
-  10: { title: "10코인", price: "44,900원", value: 44900, coins: 10 }
+  3: { title: "5코인", price: "23,900원", value: 23900, coins: 5 },
+  4: { title: "10코인", price: "44,900원", value: 44900, coins: 10 }
 };
 
 export default function Payment() {
@@ -85,7 +85,8 @@ export default function Payment() {
     const plan = params.get('plan');
     if (plan) {
       const planNumber = Number(plan);
-      if (planNumber in planDetails) {
+      // planDetails 객체의 키는 1,2,3,4 이므로 올바른 범위 확인
+      if (planNumber >= 1 && planNumber <= 4 && planDetails[planNumber as keyof typeof planDetails]) {
         setSelectedPlan(planNumber as keyof typeof planDetails);
       }
     }

@@ -9,11 +9,10 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
-import { Leaf, Edit2, Save, X, User, CreditCard } from "lucide-react";
+import { Leaf, Edit2, Save, X, User, CreditCard, ShoppingBag, Package } from "lucide-react";
 import { Link } from "wouter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getQueryFn } from "@/lib/queryClient";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,15 +31,31 @@ interface UserProfile {
   address: string | null;
   phoneNumber: string | null;
   coins: number;
+  subscriptions?: Subscription[];
 }
 
 interface Subscription {
   id: number;
-  planId: string;
+  planId: number;
   paidAmount: number;
   paymentStatus: string;
   startDate: string;
   endDate: string | null;
+  userEmail: string;
+}
+
+interface OrderItem {
+  plantName: string;
+  quantity: number;
+  priceAtPurchase: number;
+}
+
+interface OrderHistory {
+  orderId: number;
+  orderDate: string;
+  status: string;
+  totalAmount: number;
+  items: OrderItem[];
 }
 
 export default function MyPage() {
@@ -62,10 +77,9 @@ export default function MyPage() {
   const initialTab = params.get('tab') || 'profile';
   const [activeTab, setActiveTab] = useState(initialTab);
 
-  // 구독 정보 조회
-  const { data: subscriptions } = useQuery<Subscription[]>({
-    queryKey: ['/subscriptions'],
-    queryFn: () => getQueryFn()('/subscriptions'),
+  // 주문 내역 조회
+  const { data: orders, isLoading: ordersLoading } = useQuery<OrderHistory[]>({
+    queryKey: ['/orders'],
     enabled: isAuthenticated,
   });
 
@@ -76,8 +90,24 @@ export default function MyPage() {
         body: JSON.stringify({ subscriptionId }),
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/subscriptions'] });
+    onSuccess: async () => {
+      // 프로필 정보 다시 가져오기
+      try {
+        const response = await apiRequest("GET", "/users/mypage");
+        const data = await response.json();
+        
+        setProfile({
+          id: data.id,
+          email: data.email,
+          address: data.address,
+          phoneNumber: data.phoneNumber,
+          coins: data.coins || 0,
+          subscriptions: data.subscriptions || [],
+        });
+      } catch (error) {
+        console.error("프로필 정보 갱신 실패:", error);
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['/auth/me'] });
       toast({
         title: "구독이 취소되었습니다",
@@ -121,6 +151,7 @@ export default function MyPage() {
           address: data.address,
           phoneNumber: data.phoneNumber,
           coins: data.coins || 0,
+          subscriptions: data.subscriptions || [],
         });
         setEditForm({
           address: data.address || "",
@@ -135,6 +166,7 @@ export default function MyPage() {
           address: user.address,
           phoneNumber: user.phone,
           coins: user.coins || 0,
+          subscriptions: [],
         });
         setEditForm({
           address: user.address || "",
@@ -336,9 +368,10 @@ export default function MyPage() {
               setActiveTab(value);
               setLocation(`?tab=${value}`);
             }} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="profile">프로필 정보</TabsTrigger>
                 <TabsTrigger value="subscription">구독 관리</TabsTrigger>
+                <TabsTrigger value="orders">주문내역</TabsTrigger>
               </TabsList>
 
               <TabsContent value="profile" className="space-y-6">
@@ -462,57 +495,76 @@ export default function MyPage() {
 
                       <div>
                         <p className="text-sm text-gray-600 mb-2">구독 내역</p>
-                        {subscriptions && subscriptions.length > 0 ? (
+                        {profile?.subscriptions && profile.subscriptions.length > 0 ? (
                           <div className="space-y-3">
-                            {subscriptions.map((subscription: Subscription) => (
-                              <div key={subscription.id} className="bg-gray-50 p-4 rounded-lg">
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <p className="font-semibold">플랜 ID: {subscription.planId}</p>
-                                    <p className="text-sm text-gray-600">결제 금액: {subscription.paidAmount}원</p>
-                                    <p className="text-sm text-gray-600">결제 상태: {subscription.paymentStatus}</p>
-                                    <p className="text-sm text-gray-600">
-                                      구독 시작: {new Date(subscription.startDate).toLocaleDateString()}
-                                    </p>
-                                    {subscription.endDate && (
+                            {profile.subscriptions.map((subscription: Subscription) => {
+                              const getPlanName = (planId: number) => {
+                                const coinMap: { [key: number]: number } = {
+                                  1: 1,
+                                  2: 2,
+                                  3: 5,
+                                  4: 10
+                                };
+                                const coins = coinMap[planId] || planId;
+                                return `${coins}코인 플랜`;
+                              };
+
+                              const isCancelled = subscription.paymentStatus === 'CANCELLED' || 
+                                                 subscription.paymentStatus === 'CANCELED_AT_PERIOD_END';
+
+                              return (
+                                <div key={subscription.id} className="bg-gray-50 p-4 rounded-lg">
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <p className="font-semibold">{getPlanName(subscription.planId)}</p>
+                                      <p className="text-sm text-gray-600">결제 금액: {subscription.paidAmount}원</p>
                                       <p className="text-sm text-gray-600">
-                                        구독 종료: {new Date(subscription.endDate).toLocaleDateString()}
+                                        구독 시작: {new Date(subscription.startDate).toLocaleDateString()}
                                       </p>
-                                    )}
-                                  </div>
-                                  {subscription.paymentStatus !== 'CANCELLED' && (
-                                    <AlertDialog>
-                                      <AlertDialogTrigger asChild>
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                        >
-                                          구독 취소
-                                        </Button>
-                                      </AlertDialogTrigger>
-                                      <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                          <AlertDialogTitle>구독을 취소하시겠습니까?</AlertDialogTitle>
-                                          <AlertDialogDescription>
-                                            이 작업은 되돌릴 수 없습니다. 구독을 취소하면 해당 플랜의 혜택을 더 이상 받을 수 없습니다.
-                                          </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                          <AlertDialogCancel>취소</AlertDialogCancel>
-                                          <AlertDialogAction
-                                            onClick={() => cancelSubscriptionMutation.mutate(subscription.id)}
-                                            className="bg-red-600 hover:bg-red-700"
+                                      {subscription.endDate && (
+                                        <p className="text-sm text-gray-600">
+                                          구독 종료: {new Date(subscription.endDate).toLocaleDateString()}
+                                        </p>
+                                      )}
+                                    </div>
+                                    {isCancelled ? (
+                                      <div className="px-3 py-1 bg-gray-200 text-gray-600 rounded text-sm font-medium">
+                                        구독 취소됨
+                                      </div>
+                                    ) : (
+                                      <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                           >
                                             구독 취소
-                                          </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                      </AlertDialogContent>
-                                    </AlertDialog>
-                                  )}
+                                          </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle>구독을 취소하시겠습니까?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                              이 작업은 되돌릴 수 없습니다. 구독을 취소하면 해당 플랜의 혜택을 더 이상 받을 수 없습니다.
+                                            </AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel>취소</AlertDialogCancel>
+                                            <AlertDialogAction
+                                              onClick={() => cancelSubscriptionMutation.mutate(subscription.id)}
+                                              className="bg-red-600 hover:bg-red-700"
+                                            >
+                                              구독 취소
+                                            </AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         ) : (
                           <div className="bg-gray-50 p-4 rounded-lg">
@@ -521,6 +573,90 @@ export default function MyPage() {
                         )}
                       </div>
                     </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="orders" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <ShoppingBag className="h-5 w-5 mr-2" />
+                      주문내역
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {ordersLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Leaf className="h-8 w-8 text-green-600 animate-pulse mr-2" />
+                        <p className="text-gray-600">주문 내역을 불러오는 중...</p>
+                      </div>
+                    ) : orders && orders?.length > 0 ? (
+                      <div className="space-y-4">
+                        {orders?.map((order) => (
+                          <div key={order.orderId} className="border rounded-lg p-4 bg-gray-50">
+                            <div className="flex justify-between items-start mb-4">
+                              <div>
+                                <p className="font-semibold text-lg">주문 #{order.orderId}</p>
+                                <p className="text-sm text-gray-600">
+                                  주문 날짜: {new Date(order.orderDate).toLocaleString('ko-KR', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                                  order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                  order.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                                  order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {order.status === 'PENDING' ? '처리 중' :
+                                   order.status === 'COMPLETED' ? '완료' :
+                                   order.status === 'CANCELLED' ? '취소됨' :
+                                   order.status}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="border-t pt-3 mb-3">
+                              <p className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                <Package className="h-4 w-4 mr-1" />
+                                주문 항목
+                              </p>
+                              <div className="space-y-2">
+                                {order.items.map((item, index) => (
+                                  <div key={index} className="flex justify-between items-center bg-white p-3 rounded">
+                                    <div>
+                                      <p className="font-medium">{item.plantName}</p>
+                                      <p className="text-sm text-gray-600">수량: {item.quantity}개</p>
+                                    </div>
+                                    <p className="font-semibold text-forest">
+                                      {item.priceAtPurchase * item.quantity} 코인
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="border-t pt-3 flex justify-between items-center">
+                              <p className="font-semibold">총 결제 금액</p>
+                              <p className="text-xl font-bold text-forest">{order.totalAmount} 코인</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <ShoppingBag className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-500 mb-2">주문 내역이 없습니다</p>
+                        <p className="text-sm text-gray-400">코인으로 식물을 구매하면 여기에 표시됩니다</p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
