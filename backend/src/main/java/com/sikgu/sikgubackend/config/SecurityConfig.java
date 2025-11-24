@@ -46,6 +46,8 @@ public class SecurityConfig {
                                 "/auth/reset-password"
                         ).permitAll()
                         .requestMatchers(
+                                "/",
+                                "/error",
                                 "/h2-console/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",

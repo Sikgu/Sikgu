@@ -1,4 +1,3 @@
-
 {
   "name": "plant-subscription",
   "version": "0.0.0",
@@ -41,6 +40,7 @@
     "@radix-ui/react-tooltip": "^1.1.7",
     "@tanstack/react-query": "^5.62.11",
     "@three-ts/orbit-controls": "^1.4.7",
+    "@types/three": "^0.181.0",
     "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -76,7 +76,7 @@
     "@types/node": "20.16.11",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.2",
+    "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.20",
     "esbuild": "^0.25.0",
     "postcss": "^8.4.47",
