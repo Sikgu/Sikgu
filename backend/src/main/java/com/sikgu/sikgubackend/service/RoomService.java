@@ -42,12 +42,13 @@ public class RoomService {
 
     @Transactional
     public void updateMyRoom(String email, MyRoomDto myRoomDto) {
+        RoomDto roomDto = myRoomDto.getRoom();
         Room room = roomRepository.findByUserEmail(email)
                 .orElseThrow(() -> {
                     return new IllegalArgumentException("사용자의 방을 찾을 수 없습니다.");
                 });
 
-        room.updateRoomInfo(room.getWidth(), room.getDepth(), room.getHeight());
+        room.updateRoomInfo(roomDto.getWidth(), roomDto.getDepth(), roomDto.getHeight());
         roomRepository.save(room);
 
         coordinateRepository.saveAll(myRoomDto.getCoordinates().stream()
@@ -81,7 +82,7 @@ public class RoomService {
                     });
         }
 
-        RoomDto roomDto = new RoomDto(room.getWidth(), room.getHeight(), room.getDepth());
+        RoomDto roomDto = new RoomDto(room.getWidth(), room.getDepth(), room.getHeight());
 
         List<ModelCoordinateDto> coordinates = coordinateRepository.findAllByRoom(room).stream()
                 .map(c -> new ModelCoordinateDto(c.getModel().getName(), c.getX(), c.getY(), c.getZ(), c.getRotation()))

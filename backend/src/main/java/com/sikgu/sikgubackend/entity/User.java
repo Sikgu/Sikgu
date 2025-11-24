@@ -55,7 +55,6 @@ public class User extends BaseEntity {
             .height(10L)
             .build();
 
-
     @Builder
     public User(String email, String password, Role role) {
         this.email = email;
