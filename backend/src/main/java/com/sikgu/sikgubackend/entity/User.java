@@ -48,9 +48,9 @@ public class User extends BaseEntity {
             .user(this)
             .build();
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id")
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Room room = Room.builder()
+            .user(this)
             .width(15L)
             .depth(15L)
             .height(10L)

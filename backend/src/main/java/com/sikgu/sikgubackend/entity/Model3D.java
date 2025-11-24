@@ -17,6 +17,7 @@ public class Model3D extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
     private String name;
 
     @Column(name = "modeling_url", length = 512)

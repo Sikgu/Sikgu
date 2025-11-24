@@ -16,7 +16,17 @@ public class Room extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
     private Long width;
     private Long depth;
     private Long height;
+
+    public void updateRoomInfo(long width, long depth, long height) {
+        this.width = width;
+        this.depth = depth;
+        this.height = height;
+    }
 }
