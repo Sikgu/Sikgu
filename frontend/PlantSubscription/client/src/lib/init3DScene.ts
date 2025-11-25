@@ -12,7 +12,6 @@ interface ModelConfig {
   label: string;
   url: string;
   targetHeight: number;
-  wallSnap?: boolean;
   canPlaceOn?: boolean;
   onlyOnSideboard?: boolean;
 }
@@ -366,25 +365,6 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
     return Object.keys(dists).find(key => dists[key as keyof typeof dists] === min) || 'front';
   }
 
-  function placeAgainstWall(obj: THREE.Object3D, side: string, gap = 0.03) {
-    const rotations: Record<string, number> = { front: Math.PI, left: -Math.PI / 2, right: Math.PI / 2, back: 0 };
-    obj.rotation.y = rotations[side] ?? 0;
-
-    const box = new THREE.Box3().setFromObject(obj);
-    const size = new THREE.Vector3();
-    box.getSize(size);
-    const halfW = ROOM_WIDTH / 2;
-    const halfD = ROOM_DEPTH / 2;
-    const current = obj.position.clone();
-    const hh = getHalfHeight(obj);
-
-    if (side === 'back') obj.position.set(current.x, hh, -halfD + size.z / 2 + gap);
-    else if (side === 'front') obj.position.set(current.x, hh, +halfD - size.z / 2 - gap);
-    else if (side === 'left') obj.position.set(-halfW + size.x / 2 + gap, hh, current.z);
-    else if (side === 'right') obj.position.set(+halfW - size.x / 2 - gap, hh, current.z);
-    obj.userData.wallSide = side;
-  }
-
   function pointInFrontOfCamera() {
     const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
     const dir = new THREE.Vector3().subVectors(controls.target, camera.position).normalize();
@@ -412,11 +392,6 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
         const spawn = pointInFrontOfCamera().clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.6, 0, (Math.random() - 0.5) * 0.6));
         const hh = getHalfHeight(model);
         model.position.set(spawn.x, hh, spawn.z);
-
-        if (cfg.wallSnap) {
-          const side = getNearestWallSide(spawn);
-          placeAgainstWall(model, side);
-        }
       }
 
       if (options.rotY !== undefined) model.rotation.y = options.rotY;
@@ -746,7 +721,6 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
         }
         const wallSide = obj.userData?.wallSide;
         if (wallSide) {
-          placeAgainstWall(obj, wallSide, 0.03);
           if (placedItems) {
             placedItems.forEach((item: THREE.Object3D) => placeOnTopOf(item, obj, 0.01));
           }
@@ -805,6 +779,40 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
   `;
   appElement.appendChild(controlsDiv);
 
+  function showToast(container: HTMLElement, message: string, type: 'success' | 'error') {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    
+    Object.assign(toast.style, {
+        position: 'absolute',
+        top: '10%',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        padding: '10px 20px',
+        borderRadius: '30px',
+        color: '#fff',
+        fontWeight: '600',
+        backgroundColor: type === 'success' ? '#4CAF50' : '#F44336',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        zIndex: '9999',
+        opacity: '0',
+        transition: 'opacity 0.4s, transform 0.4s',
+    });
+    
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(-50%) translateY(10px)';
+    });
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(-50%) translateY(0px)';
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+  }
+  
   const btnSave = document.getElementById('btn-save');
   if (btnSave) {
     btnSave.addEventListener('click', async () => {
@@ -823,13 +831,14 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
         });
 
         if (response.ok) {
-          alert('성공적으로 저장되었습니다!');
+          showToast(appElement, '성공적으로 저장되었습니다!', 'success');
         } else {
-          if (response.status === 403) alert('권한이 없습니다. 다시 로그인해 주세요.');
-          else alert('저장에 실패했습니다.');
+          if (response.status === 403) showToast(appElement, '권한이 없습니다. 다시 로그인해 주세요.', 'error');
+          else showToast(appElement, '저장에 실패했습니다.', 'error');
         }
       } catch (error) {
         console.error('Error saving room:', error);
+        showToast(appElement, '오류가 발생했습니다.', 'error');
       }
     });
   }
