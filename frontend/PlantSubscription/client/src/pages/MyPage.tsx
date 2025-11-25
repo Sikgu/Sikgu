@@ -154,8 +154,18 @@ export default function MyPage() {
       }
       return await response.json();
     },
-    onSuccess: async (data) => {
-      // 주문 목록과 사용자 정보(코인) 갱신
+    onSuccess: async (cancelledOrder) => {
+      // 쿼리 캐시를 즉시 업데이트하여 UI에 반영
+      queryClient.setQueryData<OrderHistory[]>(['/orders'], (oldOrders) => {
+        if (!oldOrders) return oldOrders;
+        return oldOrders.map(order => 
+          order.orderId === cancelledOrder.orderId 
+            ? { ...order, status: 'CANCELLED' }
+            : order
+        );
+      });
+      
+      // 추가로 서버에서 최신 데이터 가져오기
       await queryClient.invalidateQueries({ queryKey: ['/orders'] });
       await queryClient.invalidateQueries({ queryKey: ['/auth/me'] });
       
