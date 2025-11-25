@@ -42,7 +42,7 @@ export default function Footer() {
                 <Instagram className="h-6 w-6" />
               </a>
             </div>
-            <p className="text-gray-400" data-testid="footer-website">plantfamily.com</p>
+            <p className="text-gray-400" data-testid="footer-website">https://d1ktwhlebd1rc2.cloudfront.net</p>
           </div>
         </div>
         

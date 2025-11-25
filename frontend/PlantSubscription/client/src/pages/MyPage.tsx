@@ -711,7 +711,11 @@ export default function MyPage() {
                                 <p className="font-semibold">총 결제 금액</p>
                                 <p className="text-xl font-bold text-forest">{order.totalAmount} 코인</p>
                               </div>
-                              {order.status !== 'CANCELLED' ? (
+                              {order.status === 'CANCELLED' ? (
+                                <div className="w-full py-2 text-center bg-gray-100 text-gray-600 rounded font-medium">
+                                  주문 취소됨
+                                </div>
+                              ) : (
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
                                     <Button
@@ -739,10 +743,6 @@ export default function MyPage() {
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
                                 </AlertDialog>
-                              ) : (
-                                <div className="w-full py-2 text-center bg-gray-100 text-gray-600 rounded font-medium">
-                                  주문 취소됨
-                                </div>
                               )}
                             </div>
                           </div>
