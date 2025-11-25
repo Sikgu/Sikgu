@@ -58,6 +58,14 @@ interface OrderHistory {
   items: OrderItem[];
 }
 
+interface OrderCancelResponse {
+  orderId: number;
+  orderDate: string;
+  status: string;
+  totalAmount: number;
+  items: OrderItem[];
+}
+
 export default function MyPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -86,37 +94,93 @@ export default function MyPage() {
   // 구독 취소 mutation
   const cancelSubscriptionMutation = useMutation({
     mutationFn: async (subscriptionId: number) => {
-      return await apiRequest('POST', '/subscriptions/cancellation', {
-        body: JSON.stringify({ subscriptionId }),
-      });
+      const response = await apiRequest('POST', `/subscriptions/${subscriptionId}/cancellation`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '구독 취소에 실패했습니다.');
+      }
+      return await response.json();
     },
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       // 프로필 정보 다시 가져오기
       try {
         const response = await apiRequest("GET", "/users/mypage");
-        const data = await response.json();
+        if (!response.ok) {
+          throw new Error("프로필 정보를 가져올 수 없습니다.");
+        }
+        const userData = await response.json();
         
         setProfile({
-          id: data.id,
-          email: data.email,
-          address: data.address,
-          phoneNumber: data.phoneNumber,
-          coins: data.coins || 0,
-          subscriptions: data.subscriptions || [],
+          id: userData.id,
+          email: userData.email,
+          address: userData.address,
+          phoneNumber: userData.phoneNumber,
+          coins: userData.coins || 0,
+          subscriptions: userData.subscriptions || [],
+        });
+        
+        // 쿼리 캐시도 무효화하여 다른 컴포넌트도 최신 정보 반영
+        queryClient.invalidateQueries({ queryKey: ['/auth/me'] });
+        
+        toast({
+          title: "구독이 취소되었습니다",
+          description: "구독이 성공적으로 취소되었습니다.",
         });
       } catch (error) {
         console.error("프로필 정보 갱신 실패:", error);
+        toast({
+          title: "정보 갱신 실패",
+          description: "구독은 취소되었지만 정보 갱신에 실패했습니다. 페이지를 새로고침해주세요.",
+          variant: "destructive",
+        });
       }
-      
-      queryClient.invalidateQueries({ queryKey: ['/auth/me'] });
-      toast({
-        title: "구독이 취소되었습니다",
-        description: "구독이 성공적으로 취소되었습니다.",
-      });
     },
     onError: (error: any) => {
       toast({
         title: "구독 취소 실패",
+        description: error.message || "다시 시도해주세요.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // 주문 취소 mutation
+  const cancelOrderMutation = useMutation({
+    mutationFn: async (orderId: number) => {
+      const response = await apiRequest('DELETE', `/orders/${orderId}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '주문 취소에 실패했습니다.');
+      }
+      return await response.json();
+    },
+    onSuccess: async (data) => {
+      // 주문 목록과 사용자 정보(코인) 갱신
+      await queryClient.invalidateQueries({ queryKey: ['/orders'] });
+      await queryClient.invalidateQueries({ queryKey: ['/auth/me'] });
+      
+      // 프로필의 코인 정보도 갱신
+      try {
+        const response = await apiRequest("GET", "/users/mypage");
+        if (response.ok) {
+          const userData = await response.json();
+          setProfile((prev) => prev ? {
+            ...prev,
+            coins: userData.coins || 0,
+          } : null);
+        }
+      } catch (error) {
+        console.error("코인 정보 갱신 실패:", error);
+      }
+      
+      toast({
+        title: "주문이 취소되었습니다",
+        description: "주문이 성공적으로 취소되었고 코인이 환불되었습니다.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "주문 취소 실패",
         description: error.message || "다시 시도해주세요.",
         variant: "destructive",
       });
@@ -510,7 +574,8 @@ export default function MyPage() {
                               };
 
                               const isCancelled = subscription.paymentStatus === 'CANCELLED' || 
-                                                 subscription.paymentStatus === 'CANCELED_AT_PERIOD_END';
+                                                 subscription.paymentStatus === 'CANCELED_AT_PERIOD_END' ||
+                                                 subscription.paymentStatus === 'CANCELLED_BY_USER';
 
                               return (
                                 <div key={subscription.id} className="bg-gray-50 p-4 rounded-lg">
@@ -608,19 +673,17 @@ export default function MyPage() {
                                   })}
                                 </p>
                               </div>
-                              <div className="text-right">
-                                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                                  order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                                  order.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                                  order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
-                                  'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {order.status === 'PENDING' ? '처리 중' :
-                                   order.status === 'COMPLETED' ? '완료' :
-                                   order.status === 'CANCELLED' ? '취소됨' :
-                                   order.status}
-                                </span>
-                              </div>
+                              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                                order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                order.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                                order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {order.status === 'PENDING' ? '처리 중' :
+                                 order.status === 'COMPLETED' ? '완료' :
+                                 order.status === 'CANCELLED' ? '주문 취소됨' :
+                                 order.status}
+                              </span>
                             </div>
 
                             <div className="border-t pt-3 mb-3">
@@ -643,9 +706,44 @@ export default function MyPage() {
                               </div>
                             </div>
 
-                            <div className="border-t pt-3 flex justify-between items-center">
-                              <p className="font-semibold">총 결제 금액</p>
-                              <p className="text-xl font-bold text-forest">{order.totalAmount} 코인</p>
+                            <div className="border-t pt-3">
+                              <div className="flex justify-between items-center mb-3">
+                                <p className="font-semibold">총 결제 금액</p>
+                                <p className="text-xl font-bold text-forest">{order.totalAmount} 코인</p>
+                              </div>
+                              {order.status !== 'CANCELLED' ? (
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
+                                    >
+                                      주문 취소
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>주문을 취소하시겠습니까?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        이 작업은 되돌릴 수 없습니다. 주문을 취소하면 사용한 코인이 환불됩니다.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>취소</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => cancelOrderMutation.mutate(order.orderId)}
+                                        className="bg-red-600 hover:bg-red-700"
+                                      >
+                                        주문 취소
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              ) : (
+                                <div className="w-full py-2 text-center bg-gray-100 text-gray-600 rounded font-medium">
+                                  주문 취소됨
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}
