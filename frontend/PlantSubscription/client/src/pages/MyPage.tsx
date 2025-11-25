@@ -152,17 +152,18 @@ export default function MyPage() {
         const errorData = await response.json();
         throw new Error(errorData.message || '주문 취소에 실패했습니다.');
       }
-      const data = await response.json();
-      return { ...data, orderId }; // orderId 포함하여 반환
+      // orderId를 함께 반환
+      return { orderId };
     },
-    onSuccess: async (data) => {
-      const cancelledOrderId = data.orderId;
+    onSuccess: async (data, orderId) => {
+      // mutation 함수에 전달한 orderId 사용
+      console.log('Order cancelled:', orderId);
       
       // 쿼리 캐시를 즉시 업데이트하여 UI에 반영
       queryClient.setQueryData<OrderHistory[]>(['/orders'], (oldOrders) => {
         if (!oldOrders) return oldOrders;
         return oldOrders.map(order => 
-          order.orderId === cancelledOrderId 
+          order.orderId === orderId 
             ? { ...order, status: 'CANCELLED' }
             : order
         );
