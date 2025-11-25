@@ -40,6 +40,12 @@ public class SecurityConfig {
                         )
                         .permitAll()
                         .requestMatchers(
+                                "/h2-console/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+                        .requestMatchers(
                                 "/auth/login",
                                 "/auth/signup",
                                 "/auth/reset-password-request",
@@ -47,14 +53,9 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(
                                 "/",
-                                "/error",
-                                "/h2-console/**",
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
+                                "/image/**",
                                 "/plans",
                                 "/plans/**",
-                                "/image/**",
                                 "/users/**",
                                 "/subscriptions", "/subscriptions/**",
                                 "/carts", "/carts/**",
