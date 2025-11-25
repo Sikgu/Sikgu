@@ -7,90 +7,125 @@ import { useCart } from "@/contexts/CartContext";
 import { Trash2, Minus, Plus, ShoppingBag, Leaf } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import {
+  AlertDialog,
+} from "@/components/ui/alert-dialog";
 
 export default function Cart() {
-  const { items, itemCount, removeItem, updateQuantity, clearCart } = useCart();
+  const { items, itemCount, totalPrice, addItem, removeItem, decreaseQuantity, clearCart, isLoading: cartLoading } = useCart();
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
-  const totalCoins = items.reduce((total, item) => total + item.coins * item.quantity, 0);
+  const handleRemove = async (plantId: number, plantName: string) => {
+    try {
+      await removeItem(plantId);
+      toast({
+        title: "상품 제거",
+        description: `${plantName}이(가) 장바구니에서 제거되었습니다.`,
+      });
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "상품 제거에 실패했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleClearCart = async () => {
+    try {
+      await clearCart();
+      toast({
+        title: "장바구니 비우기",
+        description: "장바구니가 비워졌습니다.",
+      });
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "장바구니 비우기에 실패했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDecreaseQuantity = async (plantId: number) => {
+    try {
+      await decreaseQuantity(plantId);
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "수량 변경에 실패했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleIncreaseQuantity = async (plantId: number) => {
+    try {
+      await addItem(plantId);
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "수량 증가에 실패했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const checkoutMutation = useMutation({
     mutationFn: async () => {
-      // 장바구니의 모든 항목을 주문으로 생성
-      const orderPromises = items.map((item) =>
-        apiRequest("POST", "/api/orders", {
-          plantId: item.id.toString(),
-          plantName: item.name,
-          size: item.size,
-          coinsUsed: item.coins * item.quantity,
-          quantity: item.quantity,
-        })
-      );
-      return Promise.all(orderPromises);
+      const response = await apiRequest('POST', '/orders/purchase');
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '구매에 실패했습니다.');
+      }
+
+      return await response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
-      clearCart();
+    onSuccess: async (data) => {
+      // 장바구니 비우기
+      await clearCart();
+
+      // 사용자 정보 갱신 (코인 업데이트)
+      queryClient.invalidateQueries({ queryKey: ['/auth/me'] });
+      queryClient.invalidateQueries({ queryKey: ['/orders'] });
+
       toast({
-        title: "구매 완료!",
-        description: "모든 식물이 성공적으로 구매되었습니다.",
+        title: "구매 완료",
+        description: `주문번호 #${data.orderId}로 구매가 완료되었습니다.`,
       });
-      setLocation("/mypage?tab=subscription");
+
+      // 마이페이지 주문내역 탭으로 이동
+      setLocation('/mypage?tab=orders');
     },
     onError: (error: any) => {
-      if (error.error === "insufficient_coins") {
-        toast({
-          title: "보유 코인이 부족합니다",
-          description: `현재 코인: ${error.currentCoins}, 필요 코인: ${error.requiredCoins}`,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "구매 실패",
-          description: error.message || "다시 시도해주세요.",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "구매 실패",
+        description: error.message || "구매 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
     },
   });
 
-  const handleRemove = (id: number, name: string) => {
-    removeItem(id);
-    toast({
-      title: "상품 제거",
-      description: `${name}이(가) 장바구니에서 제거되었습니다.`,
-    });
-  };
-
-  const handleClearCart = () => {
-    clearCart();
-    toast({
-      title: "장바구니 비우기",
-      description: "장바구니가 비워졌습니다.",
-    });
-  };
-
   const handleCheckout = () => {
-    if (!isAuthenticated) {
+    if (items.length === 0) {
       toast({
-        title: "로그인이 필요합니다",
-        description: "로그인 후 이용해주세요.",
+        title: "장바구니가 비어있습니다",
+        description: "상품을 추가해주세요.",
         variant: "destructive",
       });
-      setLocation("/login");
       return;
     }
 
     checkoutMutation.mutate();
   };
 
-  if (isLoading) {
+  if (isLoading || cartLoading) {
     return (
       <div className="min-h-screen bg-bg-soft flex items-center justify-center">
         <div className="text-center">
@@ -123,7 +158,7 @@ export default function Cart() {
   return (
     <div className="min-h-screen bg-bg-soft">
       <Header />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-8" data-testid="cart-title">
           장바구니
@@ -149,36 +184,23 @@ export default function Cart() {
             {/* 장바구니 아이템 목록 */}
             <div className="lg:col-span-2 space-y-4">
               {items.map((item) => (
-                <Card key={item.id} className="bg-white" data-testid={`cart-item-${item.id}`}>
+                <Card key={item.plantId} className="bg-white" data-testid={`cart-item-${item.plantId}`}>
                   <CardContent className="p-6">
                     <div className="flex items-center space-x-4">
-                      {/* 상품 이미지 */}
-                      <Link href={`/plant/${item.id}`}>
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-24 h-24 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                          data-testid={`cart-item-image-${item.id}`}
-                        />
-                      </Link>
-
                       {/* 상품 정보 */}
                       <div className="flex-1">
-                        <Link href={`/plant/${item.id}`}>
-                          <h3 className="text-lg font-semibold text-gray-900 hover:text-forest cursor-pointer" data-testid={`cart-item-name-${item.id}`}>
-                            {item.name}
+                        <Link href={`/plant/${item.plantId}`}>
+                          <h3 className="text-lg font-semibold text-gray-900 hover:text-forest cursor-pointer" data-testid={`cart-item-name-${item.plantId}`}>
+                            {item.plantName}
                           </h3>
                         </Link>
-                        <p className="text-sm text-gray-500" data-testid={`cart-item-size-${item.id}`}>
-                          {item.size} 식물
-                        </p>
                         <div className="flex items-center space-x-2 mt-2">
-                          <Leaf className="h-5 w-5 text-forest" />
-                          <span className="text-lg font-bold text-forest" data-testid={`cart-item-coins-${item.id}`}>
-                            {item.coins * item.quantity} 코인
+                          <span className="text-lg font-bold text-forest flex items-center gap-1" data-testid={`cart-item-price-${item.plantId}`}>
+                            <Leaf className="h-5 w-5" />
+                            {item.itemTotal}
                           </span>
-                          <span className="text-sm text-gray-500">
-                            ({item.coins} 코인 x {item.quantity})
+                          <span className="text-sm text-gray-500 flex items-center gap-1">
+                            (<Leaf className="h-4 w-4" />{item.plantPrice} x {item.quantity})
                           </span>
                         </div>
                       </div>
@@ -188,20 +210,20 @@ export default function Cart() {
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          onClick={() => handleDecreaseQuantity(item.plantId)}
                           disabled={item.quantity <= 1}
-                          data-testid={`button-decrease-${item.id}`}
+                          data-testid={`button-decrease-${item.plantId}`}
                         >
                           <Minus className="h-4 w-4" />
                         </Button>
-                        <span className="w-12 text-center font-medium" data-testid={`cart-item-quantity-${item.id}`}>
+                        <span className="w-12 text-center font-medium" data-testid={`cart-item-quantity-${item.plantId}`}>
                           {item.quantity}
                         </span>
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          data-testid={`button-increase-${item.id}`}
+                          onClick={() => handleIncreaseQuantity(item.plantId)}
+                          data-testid={`button-increase-${item.plantId}`}
                         >
                           <Plus className="h-4 w-4" />
                         </Button>
@@ -211,9 +233,9 @@ export default function Cart() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleRemove(item.id, item.name)}
+                        onClick={() => handleRemove(item.plantId, item.plantName)}
                         className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                        data-testid={`button-remove-${item.id}`}
+                        data-testid={`button-remove-${item.plantId}`}
                       >
                         <Trash2 className="h-5 w-5" />
                       </Button>
@@ -241,30 +263,28 @@ export default function Cart() {
                   <h3 className="text-xl font-bold text-gray-900 mb-4" data-testid="order-summary-title">
                     주문 요약
                   </h3>
-                  
+
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between text-gray-600">
                       <span data-testid="total-items-label">총 상품 수</span>
                       <span data-testid="total-items-count">{itemCount}개</span>
                     </div>
                     <div className="flex justify-between items-center text-lg font-semibold">
-                      <span data-testid="total-coins-label">총 코인</span>
-                      <div className="flex items-center space-x-2">
-                        <Leaf className="h-6 w-6 text-forest" />
-                        <span className="text-2xl text-forest" data-testid="total-coins-amount">
-                          {totalCoins}
-                        </span>
-                      </div>
+                      <span data-testid="total-price-label">총 금액</span>
+                      <span className="text-2xl text-forest flex items-center gap-1" data-testid="total-price-amount">
+                        <Leaf className="h-6 w-6" />
+                        {totalPrice}
+                      </span>
                     </div>
                   </div>
 
                   <Button 
                     onClick={handleCheckout}
-                    disabled={checkoutMutation.isPending}
                     className="w-full bg-forest text-white hover:bg-forest/90 py-6 text-lg" 
                     data-testid="button-checkout"
+                    disabled={checkoutMutation.isPending}
                   >
-                    {checkoutMutation.isPending ? "결제 중..." : "결제하기"}
+                    {checkoutMutation.isPending ? "처리 중..." : "결제하기"}
                   </Button>
 
                   <Link href="/">

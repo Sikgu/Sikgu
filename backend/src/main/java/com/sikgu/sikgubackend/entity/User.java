@@ -21,6 +21,7 @@ public class User extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Setter
     private String password;
 
     private String address;
@@ -30,15 +31,29 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "subscription_id")
-    private Subscription subscription;
+    private Long coins = 0L;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Subscription> subscriptions = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviews = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SupportQnA> supportQnAs = new ArrayList<>();
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Cart carts = Cart.builder()
+            .user(this)
+            .build();
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Room room = Room.builder()
+            .user(this)
+            .width(15L)
+            .depth(15L)
+            .height(10L)
+            .build();
 
     @Builder
     public User(String email, String password, Role role) {
@@ -61,5 +76,24 @@ public class User extends BaseEntity {
     public void addSupportQnA(SupportQnA supportQnA) {
         this.supportQnAs.add(supportQnA);
         supportQnA.setUser(this);
+    }
+
+    public void addCoins(long amount) {
+        if (this.coins == null) {
+            this.coins = 0L;
+        }
+        this.coins += amount;
+    }
+
+    public void subtractCoins(long amount) {
+        if (this.coins == null) {
+            this.coins = 0L;
+        }
+        this.coins -= amount;
+    }
+
+    public void addSubscription(Subscription subscription) {
+        this.subscriptions.add(subscription);
+        subscription.assignUser(this);
     }
 }

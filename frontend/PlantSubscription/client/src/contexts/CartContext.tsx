@@ -1,86 +1,130 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface CartItem {
-  id: number;
-  name: string;
-  size: string;
-  coins: number;
-  image: string;
+  plantId: number;
+  plantName: string;
+  plantPrice: number;
   quantity: number;
+  itemTotal: number;
+}
+
+interface CartData {
+  userEmail: string;
+  items: CartItem[];
+  totalPrice: number;
 }
 
 interface CartContextType {
   items: CartItem[];
   itemCount: number;
-  addItem: (item: Omit<CartItem, "quantity">) => void;
-  removeItem: (id: number) => void;
-  clearCart: () => void;
-  updateQuantity: (id: number, quantity: number) => void;
+  totalPrice: number;
+  isLoading: boolean;
+  addItem: (plantId: number) => Promise<void>;
+  removeItem: (plantId: number) => Promise<void>;
+  clearCart: () => Promise<void>;
+  decreaseQuantity: (plantId: number) => Promise<void>;
+  refetch: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>(() => {
-    // 초기 상태를 설정할 때 로컬 스토리지에서 불러오기
-    if (typeof window !== "undefined") {
-      const savedCart = localStorage.getItem("cart");
-      if (savedCart) {
-        try {
-          return JSON.parse(savedCart);
-        } catch (e) {
-          console.error("Failed to parse cart from localStorage:", e);
-        }
-      }
-    }
-    return [];
+  const { isAuthenticated } = useAuth();
+  const queryClient = useQueryClient();
+
+  // 장바구니 조회
+  const { data: cartData, isLoading, refetch } = useQuery<CartData>({
+    queryKey: ["/carts"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/carts");
+      return response.json();
+    },
+    enabled: isAuthenticated,
+    staleTime: 1000 * 60, // 1분
   });
 
-  // 장바구니 변경 시 로컬 스토리지에 저장
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("cart", JSON.stringify(items));
-    }
-  }, [items]);
+  // 장바구니 항목 추가
+  const addItemMutation = useMutation({
+    mutationFn: async (plantId: number) => {
+      const response = await apiRequest("POST", "/carts", { plantId });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/carts"] });
+    },
+    onError: (error: any) => {
+      console.error("Failed to add item to cart:", error);
+      throw error;
+    },
+  });
 
+  // 수량 감소
+  const decreaseQuantityMutation = useMutation({
+    mutationFn: async (plantId: number) => {
+      const response = await apiRequest("PATCH", `/carts/${plantId}/quantity`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/carts"] });
+    },
+    onError: (error: any) => {
+      console.error("Failed to decrease quantity:", error);
+      throw error;
+    },
+  });
+
+  // 항목 제거
+  const removeItemMutation = useMutation({
+    mutationFn: async (plantId: number) => {
+      const response = await apiRequest("DELETE", `/carts/${plantId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/carts"] });
+    },
+    onError: (error: any) => {
+      console.error("Failed to remove item:", error);
+      throw error;
+    },
+  });
+
+  // 장바구니 비우기
+  const clearCartMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("DELETE", "/carts");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/carts"] });
+    },
+    onError: (error: any) => {
+      console.error("Failed to clear cart:", error);
+      throw error;
+    },
+  });
+
+  const items = cartData?.items || [];
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
+  const totalPrice = cartData?.totalPrice || 0;
 
-  const addItem = (newItem: Omit<CartItem, "quantity">) => {
-    setItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.id === newItem.id);
-      
-      if (existingItem) {
-        // 이미 장바구니에 있는 경우 수량 증가
-        return prevItems.map((item) =>
-          item.id === newItem.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      } else {
-        // 새로운 아이템 추가
-        return [...prevItems, { ...newItem, quantity: 1 }];
-      }
-    });
+  const addItem = async (plantId: number) => {
+    await addItemMutation.mutateAsync(plantId);
   };
 
-  const removeItem = (id: number) => {
-    setItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  const removeItem = async (plantId: number) => {
+    await removeItemMutation.mutateAsync(plantId);
   };
 
-  const clearCart = () => {
-    setItems([]);
+  const clearCart = async () => {
+    await clearCartMutation.mutateAsync();
   };
 
-  const updateQuantity = (id: number, quantity: number) => {
-    if (quantity <= 0) {
-      removeItem(id);
-    } else {
-      setItems((prevItems) =>
-        prevItems.map((item) =>
-          item.id === id ? { ...item, quantity } : item
-        )
-      );
-    }
+  const decreaseQuantity = async (plantId: number) => {
+    await decreaseQuantityMutation.mutateAsync(plantId);
   };
 
   return (
@@ -88,10 +132,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       value={{
         items,
         itemCount,
+        totalPrice,
+        isLoading,
         addItem,
         removeItem,
         clearCart,
-        updateQuantity,
+        decreaseQuantity,
+        refetch,
       }}
     >
       {children}

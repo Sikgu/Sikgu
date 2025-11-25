@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function Signup() {
   const [, setLocation] = useLocation();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -17,16 +18,50 @@ export default function Signup() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const isPasswordValid = password.length >= 8;
+  // Email validation regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailValid = emailRegex.test(email);
+  
+  // Password validations
+  const passwordValidations = {
+    length: password.length >= 8,
+    hasUpperCase: /[A-Z]/.test(password),
+    hasLowerCase: /[a-z]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+    hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+  };
+  
+  const isPasswordValid = Object.values(passwordValidations).every(Boolean);
   const isPasswordMatch = password === confirmPassword && confirmPassword !== "";
+
+  const ValidationItem = ({ isValid, text }: { isValid: boolean; text: string }) => (
+    <div className="flex items-center gap-2 text-xs">
+      {isValid ? (
+        <Check className="w-3 h-3 text-green-600" />
+      ) : (
+        <X className="w-3 h-3 text-gray-400" />
+      )}
+      <span className={isValid ? "text-green-600" : "text-gray-500"}>{text}</span>
+    </div>
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Email format validation
+    if (!isEmailValid) {
+      toast({
+        title: "이메일 오류",
+        description: "올바른 이메일 형식을 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!isPasswordValid) {
       toast({
         title: "비밀번호 오류",
-        description: "비밀번호는 8자 이상이어야 합니다.",
+        description: "비밀번호가 요구사항을 충족하지 않습니다.",
         variant: "destructive",
       });
       return;
@@ -44,12 +79,13 @@ export default function Signup() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/signup", {
+      const response = await fetch("/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
+        credentials: "include",
       });
 
       if (response.ok) {
@@ -59,17 +95,17 @@ export default function Signup() {
         });
         setLocation("/login");
       } else {
-        const error = await response.text();
+        const errorText = await response.text();
         toast({
           title: "회원가입 실패",
-          description: error || "회원가입 중 오류가 발생했습니다.",
+          description: errorText || "회원가입 중 오류가 발생했습니다.",
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
         title: "오류 발생",
-        description: "회원가입 중 오류가 발생했습니다.",
+        description: "서버와 연결할 수 없습니다. 잠시 후 다시 시도해주세요.",
         variant: "destructive",
       });
     } finally {
@@ -106,19 +142,31 @@ export default function Signup() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-sm font-medium text-gray-700">
-                아이디
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                이메일
               </Label>
               <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="아이디를 입력하세요"
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="example@email.com"
                 required
                 className="w-full"
-                data-testid="input-username"
+                data-testid="input-email"
               />
+              {email && (
+                <div className="flex items-center text-sm mt-1">
+                  {isEmailValid ? (
+                    <Check className="h-4 w-4 text-green-500 mr-1" />
+                  ) : (
+                    <X className="h-4 w-4 text-red-500 mr-1" />
+                  )}
+                  <span className={isEmailValid ? "text-green-500" : "text-red-500"}>
+                    {isEmailValid ? "올바른 이메일 형식" : "이메일 형식이 아닙니다"}
+                  </span>
+                </div>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -150,15 +198,12 @@ export default function Signup() {
                 </button>
               </div>
               {password && (
-                <div className="flex items-center text-sm mt-1">
-                  {isPasswordValid ? (
-                    <Check className="h-4 w-4 text-green-500 mr-1" />
-                  ) : (
-                    <X className="h-4 w-4 text-red-500 mr-1" />
-                  )}
-                  <span className={isPasswordValid ? "text-green-500" : "text-red-500"}>
-                    8자 이상
-                  </span>
+                <div className="mt-3 space-y-1 p-3 bg-gray-50 rounded-md">
+                  <ValidationItem isValid={passwordValidations.length} text="8자 이상" />
+                  <ValidationItem isValid={passwordValidations.hasUpperCase} text="대문자 포함" />
+                  <ValidationItem isValid={passwordValidations.hasLowerCase} text="소문자 포함" />
+                  <ValidationItem isValid={passwordValidations.hasNumber} text="숫자 포함" />
+                  <ValidationItem isValid={passwordValidations.hasSpecialChar} text="특수문자 포함" />
                 </div>
               )}
             </div>
@@ -208,7 +253,7 @@ export default function Signup() {
             <Button
               type="submit"
               className="w-full bg-forest text-white hover:bg-forest/90 py-2"
-              disabled={isLoading || !isPasswordValid || !isPasswordMatch}
+              disabled={isLoading || !isEmailValid || !isPasswordValid || !isPasswordMatch}
               data-testid="button-signup"
             >
               {isLoading ? "가입 중..." : "회원가입"}

@@ -3,29 +3,29 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
-    
+
     try {
       const errorData = JSON.parse(text);
-      
+
       if (errorData.error === "insufficient_coins") {
         throw {
           error: "insufficient_coins",
           currentCoins: errorData.currentCoins,
           requiredCoins: errorData.requiredCoins,
-          message: "보유 코인이 부족합니다."
+          message: "보유 코인이 부족합니다.",
         };
       }
-      
+
       const errorMessage = errorData.error || errorData.message || text;
       throw new Error(errorMessage);
     } catch (e) {
       if (e instanceof Error && e.message) {
         throw e;
       }
-      if (typeof e === 'object' && e !== null && 'error' in e) {
+      if (typeof e === "object" && e !== null && "error" in e) {
         throw e;
       }
-      
+
       if (res.status === 400) {
         throw new Error("요청을 처리할 수 없습니다. 입력 내용을 확인해주세요.");
       } else if (res.status === 401) {
@@ -43,14 +43,33 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// sessionStorage에서 Bearer 토큰 가져와 Authorization 헤더 구성
+function getAuthHeaders(): Record<string, string> {
+  const token = sessionStorage.getItem("bearerToken");
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
 export async function apiRequest(
   method: string,
   url: string,
-  data?: unknown | undefined,
+  data?: unknown,
 ): Promise<Response> {
+  const baseHeaders: Record<string, string> = data
+    ? { "Content-Type": "application/json" }
+    : {};
+
+  const authHeaders = getAuthHeaders();
+
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers: {
+      ...baseHeaders,
+      ...authHeaders,
+    },
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -60,17 +79,21 @@ export async function apiRequest(
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
+
 export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    const url = String(queryKey[0]);
+
+    const res = await fetch(url, {
       credentials: "include",
+      headers: getAuthHeaders(),
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+      return null as T;
     }
 
     await throwIfResNotOk(res);

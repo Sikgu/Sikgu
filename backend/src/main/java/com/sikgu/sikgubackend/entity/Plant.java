@@ -1,7 +1,7 @@
 package com.sikgu.sikgubackend.entity;
 
 import com.sikgu.sikgubackend.entity.base.BaseEntity;
-import com.sikgu.sikgubackend.entity.enums.PlantCondition;
+import com.sikgu.sikgubackend.entity.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,7 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Entity
 @Table(name = "plant")
 public class Plant extends BaseEntity {
@@ -20,45 +22,59 @@ public class Plant extends BaseEntity {
 
     private String name;
 
-    //필요 코인
-    private Long price;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PlantSize size;
 
-    private Long cycle;
+    @Column(nullable = false)
+    private Long coins;
 
-    @Enumerated(EnumType.ORDINAL)
-    private PlantCondition light;
+    @Enumerated(EnumType.STRING)
+    private LightCondition lightCondition;
 
-    @Enumerated(EnumType.ORDINAL)
-    private PlantCondition humidity;
+    @Enumerated(EnumType.STRING)
+    private Difficulty difficulty;
 
-    @Enumerated(EnumType.ORDINAL)
-    private PlantCondition temp;
+    @Enumerated(EnumType.STRING)
+    private Humidity humidityTag;
 
-    @Column(columnDefinition = "TEXT")
-    private String caution;
+    @Column(nullable = false)
+    private String lightCategory;
 
-    @Column(name = "plant_image_url", length = 512)
-    private String plantImageURL;
+    @Lob
+    @Column(nullable = false)
+    private String description;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "planterior3D_id")
-    private Planterior3D planterior3D;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "care_guide_id")
+    private CareGuide careGuide;
 
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "plant_features", joinColumns = @JoinColumn(name = "plant_id"))
+    @Column(name = "feature_description")
+    @Builder.Default
+    private List<String> features = new ArrayList<>();
+
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "plant_images", joinColumns = @JoinColumn(name = "plant_id"))
+    @Column(name = "image_url")
+    @Builder.Default
+    private List<String> images = new ArrayList<>();
+//    @Column(name = "plant_image_url", length = 512)
+//    private String plantImageURL;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "model_id")
+    private Model3D model3D;
+
+    @Builder.Default
     @OneToMany(mappedBy = "plant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items = new ArrayList<>();
 
-    @Builder
-    public Plant(String name, long price, long cycle, PlantCondition light, PlantCondition humidity, PlantCondition temp, String caution, String url, Planterior3D planterior3D) {
-        this.name = name;
-        this.price = price;
-        this.cycle = cycle;
-        this.light = light;
-        this.humidity = humidity;
-        this.temp = temp;
-        this.caution = caution;
-        this.plantImageURL = url;
-        this.planterior3D = planterior3D;
-    }
+    @Lob
+    @Column(name = "care_tip", columnDefinition = "LONGTEXT", nullable = false)
+    private String careTip;
 
     public void addCartItem(CartItem cartItem) {
         items.add(cartItem);

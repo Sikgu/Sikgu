@@ -14,17 +14,14 @@ export default function Header() {
   const handleLogout = async () => {
     try {
       await logout();
+    } catch (error) {
+      // 에러가 발생해도 클라이언트 측 로그아웃은 완료됨
+    } finally {
       toast({
         title: "로그아웃 완료",
         description: "다음에 또 방문해주세요!",
       });
       setLocation("/");
-    } catch (error) {
-      toast({
-        title: "로그아웃 실패",
-        description: "다시 시도해주세요.",
-        variant: "destructive",
-      });
     }
   };
 

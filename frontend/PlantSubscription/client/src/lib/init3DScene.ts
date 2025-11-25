@@ -2,64 +2,147 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement) {
-  // WebGL 지원 확인
-  function checkWebGL() {
-    try {
-      const canvas = document.createElement('canvas');
-      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-      if (!gl) {
-        return false;
-      }
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
+export interface SceneControls {
+  cleanup: () => void;
+  save: () => string;
+  load: (jsonString: string) => Promise<void>;
+}
 
-  if (!checkWebGL()) {
-    console.error('WebGL is not supported in this environment');
-    const errorDiv = document.createElement('div');
-    errorDiv.innerHTML = `
-      <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-        <div style="background: rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 40px; max-width: 500px; text-align: center; color: white;">
-          <div style="font-size: 60px; margin-bottom: 15px;">⚠️</div>
-          <h2 style="font-size: 24px; margin-bottom: 15px;">WebGL을 사용할 수 없습니다</h2>
-          <p style="font-size: 16px; line-height: 1.6; opacity: 0.9;">
-            현재 환경에서는 3D 뷰어를 표시할 수 없습니다.<br>
-            브라우저의 개발자 도구에서 이 페이지를 새 탭으로 열거나,<br>
-            WebGL을 지원하는 다른 브라우저를 사용해주세요.
-          </p>
-        </div>
-      </div>
-    `;
-    appElement.appendChild(errorDiv);
-    return () => {}; // 빈 cleanup 함수 반환
-  }
+interface ModelConfig {
+  label: string;
+  url: string;
+  targetHeight: number;
+  canPlaceOn?: boolean;
+  onlyOnSideboard?: boolean;
+}
 
-  let renderer: THREE.WebGLRenderer;
+const MODEL_MAP: Record<string, ModelConfig> = {
+  euphorbia_trigona: { label: '유포르비아 트리고나', url: '/planterior-assets/models/dynamic/big/Euphorbia_Trigona.glb', targetHeight: 5 },
+  paradise_plant: { label: '극락조', url: '/planterior-assets/models/dynamic/big/Paradise_Plant.glb', targetHeight: 4.5 },
+  rubber_tree: { label: '고무나무', url: '/planterior-assets/models/dynamic/big/Rubber_Tree.glb', targetHeight: 5 },
+  philodendron_congo: { label: '필로덴드론 콩고', url: '/planterior-assets/models/dynamic/big/Philodendron_Congo.glb', targetHeight: 4.3 },
+  areca_palm: { label: '아레카 야자', url: '/planterior-assets/models/dynamic/middle/Areca_Palm.glb', targetHeight: 3.5 },
+  monstera: { label: '몬스테라', url: '/planterior-assets/models/dynamic/middle/Monstera.glb', targetHeight: 3.5 },
+  spathiphyllum: { label: '스파티필룸', url: '/planterior-assets/models/dynamic/middle/Spathiphyllum.glb', targetHeight: 3.5 },
+  travelers_tree: { label: '여인초', url: '/planterior-assets/models/dynamic/middle/Travelers_Tree.glb', targetHeight: 3.5 },
+  calathea_orbifolia: { label: '칼라데아 오르비폴리아', url: '/planterior-assets/models/dynamic/small/Calathea_Orbifolia.glb', targetHeight: 2.2 },
+  golden_pothos: { label: '스킨답서스', url: '/planterior-assets/models/dynamic/small/Golden_Pothos.glb', targetHeight: 2.2 },
+  mini_cactus: { label: '미니 선인장', url: '/planterior-assets/models/dynamic/small/Mini_Cactus.glb', targetHeight: 2.2 },
+  tillandsia: { label: '틸란드시아', url: '/planterior-assets/models/dynamic/small/Tillandsia.glb', targetHeight: 2.2 },
+  sofa: { label: '소파', url: '/planterior-assets/models/static/Sofa.glb', targetHeight: 2 },
+  coffee_table: { label: '커피 테이블', url: '/planterior-assets/models/static/Coffee_Table.glb', targetHeight: 1.2, canPlaceOn: true },
+  sideboard: { label: '사이드보드', url: '/planterior-assets/models/static/Sideboard.glb', targetHeight: 1.5, canPlaceOn: true },
+  television: { label: '텔레비전', url: '/planterior-assets/models/static/Television.glb', targetHeight: 3, onlyOnSideboard: true },
+  console_table: { label: '콘솔 테이블', url: '/planterior-assets/models/static/Console_Table.glb', targetHeight: 2, canPlaceOn: true },
+  plant_table_small: { label: '식물 받침대 (소)', url: '/planterior-assets/models/static/Plant_Table.glb', targetHeight: 0.45, canPlaceOn: true },
+  plant_table_medium: { label: '식물 받침대 (중)', url: '/planterior-assets/models/static/Plant_Table.glb', targetHeight: 0.6, canPlaceOn: true },
+  plant_table_large: { label: '식물 받침대 (대)', url: '/planterior-assets/models/static/Plant_Table.glb', targetHeight: 0.8, canPlaceOn: true },
+  flower_vase: { label: '꽃병', url: '/planterior-assets/models/static/Flower_Vase.glb', targetHeight: 1.8 },
+};
+
+const PLANT_STAND_KEYS = new Set(['plant_table_small', 'plant_table_medium', 'plant_table_large']);
+const FURNITURE_BLOCK_KEYS = new Set(['sofa', 'coffee_table', 'sideboard', 'console_table', ...PLANT_STAND_KEYS]);
+
+function checkWebGL() {
   try {
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-  } catch (error) {
-    console.error('THREE.WebGLRenderer: Error creating WebGL context.', error);
-    const errorDiv = document.createElement('div');
-    errorDiv.innerHTML = `
+    const canvas = document.createElement('canvas');
+    return !!(canvas.getContext('webgl') || canvas.getContext('experimental-webgl'));
+  } catch (e) {
+    return false;
+  }
+}
+
+function showWebGLError(container: HTMLElement) {
+  const errorDiv = document.createElement('div');
+  errorDiv.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
         <div style="background: rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 40px; max-width: 500px; text-align: center; color: white;">
-          <div style="font-size: 60px; margin-bottom: 15px;">⚠️</div>
-          <h2 style="font-size: 24px; margin-bottom: 15px;">WebGL을 사용할 수 없습니다</h2>
-          <p style="font-size: 16px; line-height: 1.6; opacity: 0.9;">
-            3D 렌더러를 초기화할 수 없습니다.<br>
-            브라우저에서 WebGL을 활성화하거나,<br>
-            WebGL을 지원하는 다른 브라우저를 사용해주세요.
-          </p>
+          <h2>WebGL을 사용할 수 없습니다</h2>
         </div>
       </div>
     `;
-    appElement.appendChild(errorDiv);
-    return () => {}; // 빈 cleanup 함수 반환
+  container.appendChild(errorDiv);
+}
+
+function createWallpaperTexture(renderer: THREE.WebGLRenderer) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d')!;
+
+  ctx.fillStyle = '#f4efe7';
+  ctx.fillRect(0, 0, 512, 512);
+
+  const stripeWidth = 14;
+  for (let x = 0; x < 512; x += stripeWidth) {
+    ctx.fillStyle = (x / stripeWidth) % 2 === 0 ? '#ecebe6' : '#f4efe7';
+    ctx.globalAlpha = 0.25;
+    ctx.fillRect(x, 0, stripeWidth, 512);
+  }
+  ctx.globalAlpha = 1;
+
+  const img = ctx.getImageData(0, 0, 512, 512);
+  const noise = 6;
+  for (let i = 0; i < img.data.length; i += 4) {
+    const n = Math.random() * noise - noise / 2;
+    img.data[i] += n;
+    img.data[i + 1] += n;
+    img.data[i + 2] += n;
+  }
+  ctx.putImageData(img, 0, 0);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.anisotropy = renderer.capabilities.getMaxAnisotropy?.() ?? 1;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function makeWallWithWindow(width: number, height: number, holeRect: { x: number; y: number; w: number; h: number }, material: THREE.Material) {
+  const shape = new THREE.Shape();
+  shape.moveTo(-width / 2, -height / 2);
+  shape.lineTo(+width / 2, -height / 2);
+  shape.lineTo(+width / 2, +height / 2);
+  shape.lineTo(-width / 2, +height / 2);
+  shape.lineTo(-width / 2, -height / 2);
+
+  const hole = new THREE.Path();
+  const { x, y, w, h } = holeRect;
+  hole.moveTo(x - w / 2, y - h / 2);
+  hole.lineTo(x + w / 2, y - h / 2);
+  hole.lineTo(x + w / 2, y + h / 2);
+  hole.lineTo(x - w / 2, y + h / 2);
+  hole.lineTo(x - w / 2, y - h / 2);
+  shape.holes.push(hole);
+
+  const geom = new THREE.ShapeGeometry(shape);
+  const mesh = new THREE.Mesh(geom, material);
+  mesh.receiveShadow = true;
+  mesh.castShadow = true;
+  return mesh;
+}
+
+function getHalfHeight(obj: THREE.Object3D) {
+  const box = new THREE.Box3().setFromObject(obj);
+  return (box.max.y - box.min.y) / 2 || 0.5;
+}
+
+function normalizeHeight(obj: THREE.Object3D, targetHeight = 1.2) {
+  const box = new THREE.Box3().setFromObject(obj);
+  const size = new THREE.Vector3();
+  box.getSize(size);
+  if (size.y > 0) {
+    obj.scale.setScalar(targetHeight / size.y);
+  }
+}
+
+export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement) {
+  if (!checkWebGL()) {
+    showWebGLError(appElement);
+    return { cleanup: () => { }, save: () => "", load: async () => { } };
   }
 
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(appElement.clientWidth, appElement.clientHeight);
   renderer.shadowMap.enabled = true;
@@ -79,21 +162,15 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
   scene.background = skybox;
   scene.environment = skybox;
 
-  const camera = new THREE.PerspectiveCamera(
-    60,
-    appElement.clientWidth / appElement.clientHeight,
-    0.1,
-    100
-  );
-  camera.position.set(10, 8, 10);
-
+  const camera = new THREE.PerspectiveCamera(60, appElement.clientWidth / appElement.clientHeight, 0.1, 100);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.06;
   controls.target.set(0, 0.5, 0);
 
-  const ROOM_SIZE = 15;
-  const WALL_HEIGHT = 6;
+  let ROOM_WIDTH = 15;
+  let ROOM_DEPTH = 15;
+  let WALL_HEIGHT = 10;
   const FLOOR_Y = 0;
 
   scene.add(new THREE.AmbientLight(0xffe8c4, 0.35));
@@ -111,46 +188,31 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
   sun.shadow.bias = -0.0002;
   sun.shadow.normalBias = 0.02;
 
-  let thetaDeg = -40;
-  function updateSun(elevDeg = 45) {
+  function updateSunPosition(elevDeg = 45, thetaDeg = -40) {
     const elev = THREE.MathUtils.degToRad(elevDeg);
     const theta = THREE.MathUtils.degToRad(thetaDeg);
     const r = 20;
-    const x = r * Math.cos(elev) * Math.cos(theta);
-    const y = r * Math.sin(elev);
-    const z = r * Math.cos(elev) * Math.sin(theta);
-    sun.position.set(x, y, z);
-    sun.target.position.set(0, ROOM_SIZE * 0.35, 0);
+    sun.position.set(
+      r * Math.cos(elev) * Math.cos(theta),
+      r * Math.sin(elev),
+      r * Math.cos(elev) * Math.sin(theta)
+    );
+    sun.target.position.set(0, Math.max(ROOM_WIDTH, ROOM_DEPTH) * 0.35, 0);
     scene.add(sun.target);
   }
-  updateSun(40);
+  updateSunPosition(40);
   scene.add(sun);
 
-  const s = 10;
-  sun.shadow.camera.left = -s;
-  sun.shadow.camera.right = s;
-  sun.shadow.camera.top = s;
-  sun.shadow.camera.bottom = -s;
+  const shadowSize = 10;
+  sun.shadow.camera.left = -shadowSize;
+  sun.shadow.camera.right = shadowSize;
+  sun.shadow.camera.top = shadowSize;
+  sun.shadow.camera.bottom = -shadowSize;
   sun.shadow.camera.near = 0.5;
   sun.shadow.camera.far = 50;
 
   const texLoader = new THREE.TextureLoader();
   const maxAniso = renderer.capabilities.getMaxAnisotropy?.() ?? 1;
-
-  function canvasTexture(cvs: HTMLCanvasElement) {
-    const t = new THREE.CanvasTexture(cvs);
-    t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    t.anisotropy = maxAniso;
-    t.colorSpace = THREE.SRGBColorSpace;
-    return t;
-  }
-
-  function makeCanvas(w = 512, h = 512) {
-    const cvs = document.createElement('canvas');
-    cvs.width = w;
-    cvs.height = h;
-    return { cvs, ctx: cvs.getContext('2d')! };
-  }
 
   function loadTiledTexture(url: string, repeatX: number, repeatY: number, rotate90 = false) {
     const t = texLoader.load(url);
@@ -165,366 +227,142 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
     return t;
   }
 
-  function createHomeWallpaperTexture({
-    base = '#f4efe7',
-    stripe = '#ecebe6',
-    noise = 6,
-    stripeWidth = 14,
-    scale = 1.0,
-  } = {}) {
-    const { cvs, ctx } = makeCanvas(512, 512);
-
-    ctx.fillStyle = base;
-    ctx.fillRect(0, 0, 512, 512);
-
-    for (let x = 0; x < 512; x += stripeWidth) {
-      ctx.fillStyle = (x / stripeWidth) % 2 === 0 ? stripe : base;
-      ctx.globalAlpha = 0.25;
-      ctx.fillRect(x, 0, stripeWidth, 512);
-    }
-    ctx.globalAlpha = 1;
-
-    const img = ctx.getImageData(0, 0, 512, 512);
-    for (let i = 0; i < img.data.length; i += 4) {
-      const n = Math.random() * noise - noise / 2;
-      img.data[i] += n;
-      img.data[i + 1] += n;
-      img.data[i + 2] += n;
-    }
-    ctx.putImageData(img, 0, 0);
-
-    const tex = canvasTexture(cvs);
-    tex.repeat.set(1 * scale, 1 * scale);
-    return tex;
-  }
-
-  const metersPerRepeat = 6.0;
-  const wallRepeatX = ROOM_SIZE / metersPerRepeat;
-  const wallRepeatY = ROOM_SIZE / metersPerRepeat;
-  const floorRepeat = ROOM_SIZE / metersPerRepeat;
-
-  const floorTex = loadTiledTexture('/planterior-assets/textures/wood_floor.jpg', floorRepeat, floorRepeat, false);
-  const floorMat = new THREE.MeshStandardMaterial({
-    map: floorTex,
-    roughness: 0.85,
-    metalness: 0.0,
-    side: THREE.DoubleSide
-  });
-  const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(ROOM_SIZE, ROOM_SIZE),
-    floorMat
-  );
-  floor.rotation.x = -Math.PI / 2;
-  floor.position.y = FLOOR_Y;
-  floor.receiveShadow = true;
-  scene.add(floor);
-
-  const grassTex = texLoader.load('/planterior-assets/textures/grass.jpg');
-  grassTex.wrapS = grassTex.wrapT = THREE.RepeatWrapping;
-  grassTex.repeat.set(100, 100);
-  grassTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-  grassTex.colorSpace = THREE.SRGBColorSpace;
-
-  const grassMat = new THREE.MeshStandardMaterial({
-    map: grassTex,
-    roughness: 1.0,
-    metalness: 0.0,
-    side: THREE.DoubleSide
-  });
-
-  const GRASS_SIZE = ROOM_SIZE * 10;
-  const grass = new THREE.Mesh(
-    new THREE.PlaneGeometry(GRASS_SIZE, GRASS_SIZE),
-    grassMat
-  );
-  grass.rotation.x = -Math.PI / 2;
-  grass.position.y = FLOOR_Y - 0.001;
-  grass.receiveShadow = true;
-  scene.add(grass);
-
   const wallGroup = new THREE.Group();
   scene.add(wallGroup);
 
-  const wallGeo = new THREE.PlaneGeometry(ROOM_SIZE, WALL_HEIGHT);
-  const ceilGeo = new THREE.PlaneGeometry(ROOM_SIZE, ROOM_SIZE);
+  let floor: THREE.Mesh;
+  let grass: THREE.Mesh;
+  let grid: THREE.GridHelper;
+  let wallFront: THREE.Mesh, wallBack: THREE.Mesh, wallLeft: THREE.Mesh, wallRight: THREE.Mesh, ceiling: THREE.Mesh;
+  let floorTex: THREE.Texture;
+  let wallpaperTexFB: THREE.Texture, wallpaperTexLR: THREE.Texture;
+  let wallMatFB: THREE.MeshStandardMaterial, wallMatLR: THREE.MeshStandardMaterial;
 
-  const wallpaperTexFB = createHomeWallpaperTexture({
-    base: '#f4efe7',
-    stripe: '#ecebe6',
-    noise: 6,
-    stripeWidth: 14,
-    scale: 1.0,
-  });
-  const wallpaperTexLR = wallpaperTexFB.clone();
+  function buildRoom() {
+    const metersPerRepeat = 6.0;
+    const wallRepeatX = ROOM_WIDTH / metersPerRepeat;
+    const wallRepeatY = WALL_HEIGHT / metersPerRepeat;
+    const wallRepeatZ = ROOM_DEPTH / metersPerRepeat;
+    const floorRepeatX = ROOM_WIDTH / metersPerRepeat;
+    const floorRepeatY = ROOM_DEPTH / metersPerRepeat;
 
-  const wallMatFB = new THREE.MeshStandardMaterial({
-    map: wallpaperTexFB,
-    roughness: 1.0,
-    metalness: 0.0,
-    side: THREE.DoubleSide
-  });
-  const wallMatLR = new THREE.MeshStandardMaterial({
-    map: wallpaperTexLR,
-    roughness: 1.0,
-    metalness: 0.0,
-    side: THREE.DoubleSide
-  });
+    if (grid) grid.dispose();
+    grid = new THREE.GridHelper(Math.max(ROOM_WIDTH, ROOM_DEPTH) - 0.02, 24, 0x475569, 0x334155);
+    grid.position.y = FLOOR_Y + 0.01;
 
-  const wallFront = new THREE.Mesh(wallGeo, wallMatFB);
-  wallFront.position.set(0, WALL_HEIGHT / 2, ROOM_SIZE / 2);
-  wallFront.rotateY(Math.PI);
-  wallFront.receiveShadow = true;
-  wallGroup.add(wallFront);
+    floorTex = loadTiledTexture('/planterior-assets/textures/wood_floor.jpg', floorRepeatX, floorRepeatY);
+    const floorMat = new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.85, side: THREE.DoubleSide });
 
-  const wallBack = new THREE.Mesh(wallGeo, wallMatFB);
-  wallBack.position.set(0, WALL_HEIGHT / 2, -ROOM_SIZE / 2);
-  wallBack.receiveShadow = true;
-  wallGroup.add(wallBack);
+    if (floor) scene.remove(floor);
+    floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH), floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = FLOOR_Y;
+    floor.receiveShadow = true;
+    scene.add(floor);
 
-  const winW = 12, winH = 4;
-  const winYCenter = 1 + winH / 2;
+    const grassTex = texLoader.load('/planterior-assets/textures/grass.jpg');
+    grassTex.wrapS = grassTex.wrapT = THREE.RepeatWrapping;
+    grassTex.repeat.set(100, 100);
+    grassTex.colorSpace = THREE.SRGBColorSpace;
+    const GRASS_SIZE = Math.max(ROOM_WIDTH, ROOM_DEPTH) * 10;
 
-  function makeWallWithWindow(width: number, height: number, holeRect: { x: number; y: number; w: number; h: number }, material: THREE.Material) {
-    const shape = new THREE.Shape();
-    shape.moveTo(-width / 2, -height / 2);
-    shape.lineTo(+width / 2, -height / 2);
-    shape.lineTo(+width / 2, +height / 2);
-    shape.lineTo(-width / 2, +height / 2);
-    shape.lineTo(-width / 2, -height / 2);
+    if (grass) scene.remove(grass);
+    grass = new THREE.Mesh(new THREE.PlaneGeometry(GRASS_SIZE, GRASS_SIZE), new THREE.MeshStandardMaterial({ map: grassTex, roughness: 1.0, side: THREE.DoubleSide }));
+    grass.rotation.x = -Math.PI / 2;
+    grass.position.y = FLOOR_Y - 0.001;
+    grass.receiveShadow = true;
+    scene.add(grass);
 
-    const hole = new THREE.Path();
-    const { x, y, w, h } = holeRect;
-    hole.moveTo(x - w / 2, y - h / 2);
-    hole.lineTo(x + w / 2, y - h / 2);
-    hole.lineTo(x + w / 2, y + h / 2);
-    hole.lineTo(x - w / 2, y + h / 2);
-    hole.lineTo(x - w / 2, y - h / 2);
-    shape.holes.push(hole);
+    wallpaperTexFB = createWallpaperTexture(renderer);
+    wallpaperTexLR = wallpaperTexFB.clone();
+    wallpaperTexFB.repeat.set(wallRepeatX, wallRepeatY);
+    wallpaperTexLR.repeat.set(wallRepeatZ, wallRepeatY);
 
-    const geom = new THREE.ShapeGeometry(shape);
-    const mesh = new THREE.Mesh(geom, material);
-    mesh.receiveShadow = true;
-    mesh.castShadow = true;
-    return mesh;
+    wallMatFB = new THREE.MeshStandardMaterial({ map: wallpaperTexFB, roughness: 1.0, side: THREE.DoubleSide });
+    wallMatLR = new THREE.MeshStandardMaterial({ map: wallpaperTexLR, roughness: 1.0, side: THREE.DoubleSide });
+
+    wallGroup.clear();
+
+    const wallGeoFB = new THREE.PlaneGeometry(ROOM_WIDTH, WALL_HEIGHT);
+    wallFront = new THREE.Mesh(wallGeoFB, wallMatFB);
+    wallFront.position.set(0, WALL_HEIGHT / 2, ROOM_DEPTH / 2);
+    wallFront.rotateY(Math.PI);
+    wallFront.receiveShadow = true;
+    wallGroup.add(wallFront);
+
+    wallBack = new THREE.Mesh(wallGeoFB, wallMatFB);
+    wallBack.position.set(0, WALL_HEIGHT / 2, -ROOM_DEPTH / 2);
+    wallBack.receiveShadow = true;
+    wallGroup.add(wallBack);
+
+    const winW = 12, winH = 4;
+    const winYCenter = 1 + winH / 2;
+    const holeRect = { x: 0, y: winYCenter - WALL_HEIGHT / 2, w: winW, h: winH };
+
+    if (wallLeft) scene.remove(wallLeft);
+    wallLeft = makeWallWithWindow(ROOM_DEPTH, WALL_HEIGHT, holeRect, wallMatLR);
+    wallLeft.position.set(-ROOM_WIDTH / 2, WALL_HEIGHT / 2, 0);
+    wallLeft.rotateY(Math.PI / 2);
+    scene.add(wallLeft);
+
+    if (wallRight) scene.remove(wallRight);
+    wallRight = makeWallWithWindow(ROOM_DEPTH, WALL_HEIGHT, holeRect, wallMatLR);
+    wallRight.position.set(ROOM_WIDTH / 2, WALL_HEIGHT / 2, 0);
+    wallRight.rotateY(-Math.PI / 2);
+    scene.add(wallRight);
+
+    ceiling = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH), new THREE.MeshStandardMaterial({ color: 0xf7f7f7, roughness: 1, side: THREE.DoubleSide }));
+    ceiling.position.set(0, WALL_HEIGHT, 0);
+    ceiling.rotateX(Math.PI / 2);
+    ceiling.receiveShadow = true;
+    wallGroup.add(ceiling);
+
+    updateSunPosition();
   }
 
-  const wallLeft = makeWallWithWindow(
-    ROOM_SIZE,
-    WALL_HEIGHT,
-    { x: 0, y: winYCenter - WALL_HEIGHT / 2, w: winW, h: winH },
-    wallMatLR
-  );
-  wallLeft.position.set(-ROOM_SIZE / 2, WALL_HEIGHT / 2, 0);
-  wallLeft.rotateY(Math.PI / 2);
-  scene.add(wallLeft);
-
-  const wallRight = makeWallWithWindow(
-    ROOM_SIZE,
-    WALL_HEIGHT,
-    { x: 0, y: winYCenter - WALL_HEIGHT / 2, w: winW, h: winH },
-    wallMatLR
-  );
-  wallRight.position.set(ROOM_SIZE / 2, WALL_HEIGHT / 2, 0);
-  wallRight.rotateY(-Math.PI / 2);
-  scene.add(wallRight);
-
-  const ceiling = new THREE.Mesh(
-    ceilGeo,
-    new THREE.MeshStandardMaterial({ color: 0xf7f7f7, roughness: 1, side: THREE.DoubleSide })
-  );
-  ceiling.position.set(0, WALL_HEIGHT, 0);
-  ceiling.rotateX(Math.PI / 2);
-  ceiling.receiveShadow = true;
-  wallGroup.add(ceiling);
-
-  interface ModelConfig {
-    label: string;
-    url: string;
-    targetHeight: number;
-    wallSnap?: boolean;
-    showInToolbar?: boolean;
-  }
-
-  const MODEL_MAP: Record<string, ModelConfig> = {
-    euphorbia_trigona: {
-      label: '유포르비아 트리고나',
-      url: '/planterior-assets/models/dynamic/big/Euphorbia_Trigona.glb',
-      targetHeight: 5,
-      showInToolbar: true,
-    },
-    paradise_plant: {
-      label: '극락조',
-      url: '/planterior-assets/models/dynamic/big/Paradise_Plant.glb',
-      targetHeight: 4.5,
-      showInToolbar: true,
-    },
-    rubber_tree: {
-      label: '고무나무',
-      url: '/planterior-assets/models/dynamic/big/Rubber_Tree.glb',
-      targetHeight: 5,
-      showInToolbar: true,
-    },
-    philodendron_congo: {
-      label: '필로덴드론 콩고',
-      url: '/planterior-assets/models/dynamic/big/Philodendron_Congo.glb',
-      targetHeight: 4.3,
-      showInToolbar: true,
-    },
-    areca_palm: {
-      label: '아레카 야자',
-      url: '/planterior-assets/models/dynamic/middle/Areca_Palm.glb',
-      targetHeight: 3.5,
-      showInToolbar: true,
-    },
-    monstera: {
-      label: '몬스테라',
-      url: '/planterior-assets/models/dynamic/middle/Monstera.glb',
-      targetHeight: 3.5,
-      showInToolbar: true,
-    },
-    spathiphyllum: {
-      label: '스파티필룸',
-      url: '/planterior-assets/models/dynamic/middle/Spathiphyllum.glb',
-      targetHeight: 3.5,
-      showInToolbar: true,
-    },
-    travelers_tree: {
-      label: '여인초',
-      url: '/planterior-assets/models/dynamic/middle/Travelers_Tree.glb',
-      targetHeight: 3.5,
-      showInToolbar: true,
-    },
-    calathea_orbifolia: {
-      label: '칼라데아 오르비폴리아',
-      url: '/planterior-assets/models/dynamic/small/Calathea_Orbifolia.glb',
-      targetHeight: 2.2,
-      showInToolbar: true,
-    },
-    golden_pothos: {
-      label: '스킨답서스',
-      url: '/planterior-assets/models/dynamic/small/Golden_Pothos.glb',
-      targetHeight: 2.2,
-      showInToolbar: true,
-    },
-    mini_cactus: {
-      label: '미니 선인장',
-      url: '/planterior-assets/models/dynamic/small/Mini_Cactus.glb',
-      targetHeight: 2.2,
-      showInToolbar: true,
-    },
-    tillandsia: {
-      label: '틸란드시아',
-      url: '/planterior-assets/models/dynamic/small/Tillandsia.glb',
-      targetHeight: 2.2,
-      showInToolbar: true,
-    },
-    sofa: {
-      label: '소파',
-      url: '/planterior-assets/models/static/Sofa.glb',
-      targetHeight: 2,
-      wallSnap: true,
-      showInToolbar: false,
-    },
-    coffee_table: {
-      label: '커피 테이블',
-      url: '/planterior-assets/models/static/Coffee_Table.glb',
-      targetHeight: 1.2,
-      showInToolbar: false,
-    },
-    sideboard: {
-      label: '사이드보드',
-      url: '/planterior-assets/models/static/Sideboard.glb',
-      targetHeight: 1.5,
-      showInToolbar: false,
-    },
-    television: {
-      label: '텔레비전',
-      url: '/planterior-assets/models/static/Television.glb',
-      targetHeight: 3,
-      showInToolbar: false,
-    },
-    console_table: {
-      label: '콘솔 테이블',
-      url: '/planterior-assets/models/static/Console_Table.glb',
-      targetHeight: 2,
-      showInToolbar: false,
-    },
-    flower_vase: {
-      label: '꽃병',
-      url: '/planterior-assets/models/static/Flower_Vase.glb',
-      targetHeight: 1.8,
-      showInToolbar: false,
-    },
-  };
-
-  function renderModelButtons() {
-    if (!toolbarElement) return;
-    const wrap = document.createElement('div');
-    wrap.className = 'model-buttons-row';
-
-    for (const [key, cfg] of Object.entries(MODEL_MAP)) {
-      if (cfg.showInToolbar) {
-        const btn = document.createElement('button');
-        btn.dataset.model = key;
-        btn.textContent = cfg.label;
-        wrap.appendChild(btn);
-      }
-    }
-    toolbarElement.insertBefore(wrap, toolbarElement.firstChild);
-  }
+  buildRoom();
 
   const loader = new GLTFLoader();
   const prototypeCache = new Map<string, THREE.Group>();
   const loadingCache = new Map<string, Promise<THREE.Group>>();
-
-  function setShadow(obj: THREE.Object3D, cast: boolean, receive: boolean) {
-    obj.traverse((c: any) => {
-      if (c.isMesh) {
-        c.castShadow = cast;
-        c.receiveShadow = receive;
-      }
-    });
-  }
+  const draggable: THREE.Object3D[] = [];
 
   function ensurePrototype(url: string): Promise<THREE.Group> {
     if (prototypeCache.has(url)) return Promise.resolve(prototypeCache.get(url)!);
     if (loadingCache.has(url)) return loadingCache.get(url)!;
 
     const p = new Promise<THREE.Group>((resolve, reject) => {
-      loader.load(
-        url,
-        (gltf) => {
-          const base = gltf.scene;
-          setShadow(base, true, true);
-          prototypeCache.set(url, base);
-          resolve(base);
-        },
-        undefined,
-        (err) => reject(err)
-      );
+      loader.load(url, (gltf) => {
+        const base = gltf.scene;
+        base.traverse((c: any) => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+        prototypeCache.set(url, base);
+        resolve(base);
+      }, undefined, reject);
     });
     loadingCache.set(url, p);
     return p;
   }
 
-  const draggable: THREE.Object3D[] = [];
-
-  function getHalfHeight(obj: THREE.Object3D) {
-    const box = new THREE.Box3().setFromObject(obj);
-    return (box.max.y - box.min.y) / 2 || 0.5;
-  }
-
-  function placeOnFloor(obj: THREE.Object3D, posXZ: THREE.Vector3) {
-    const hh = getHalfHeight(obj);
-    obj.position.set(posXZ.x, hh, posXZ.z);
-  }
-
   function clampInRoomXZ(x: number, z: number, margin = 0.3) {
-    const inner = ROOM_SIZE / 2 - margin;
+    const innerX = ROOM_WIDTH / 2 - margin;
+    const innerZ = ROOM_DEPTH / 2 - margin;
     return {
-      x: THREE.MathUtils.clamp(x, -inner, inner),
-      z: THREE.MathUtils.clamp(z, -inner, inner),
+      x: THREE.MathUtils.clamp(x, -innerX, innerX),
+      z: THREE.MathUtils.clamp(z, -innerZ, innerZ),
     };
+  }
+
+  function getNearestWallSide(posXZ: THREE.Vector3) {
+    const halfW = ROOM_WIDTH / 2;
+    const halfD = ROOM_DEPTH / 2;
+    const dists = {
+      left: Math.abs(posXZ.x - -halfW),
+      right: Math.abs(posXZ.x - +halfW),
+      back: Math.abs(posXZ.z - -halfD),
+      front: Math.abs(posXZ.z - +halfD)
+    };
+    const min = Math.min(...Object.values(dists));
+    return Object.keys(dists).find(key => dists[key as keyof typeof dists] === min) || 'front';
   }
 
   function pointInFrontOfCamera() {
@@ -539,173 +377,64 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
     return new THREE.Vector3(0, 0, 0);
   }
 
-  function randJitter() {
-    return new THREE.Vector3(
-      (Math.random() - 0.5) * 0.6,
-      0,
-      (Math.random() - 0.5) * 0.6
-    );
-  }
+  async function addModelByKey(key: string, options: { pos?: { x: number, y: number, z: number }, rotY?: number } = {}) {
+    const cfg = MODEL_MAP[key];
+    if (!cfg) return;
 
-  function normalizeHeight(obj: THREE.Object3D, targetHeight = 1.2) {
-    const box = new THREE.Box3().setFromObject(obj);
-    const size = new THREE.Vector3();
-    box.getSize(size);
-    if (size.y > 0) {
-      const s = targetHeight / size.y;
-      obj.scale.setScalar(s);
+    try {
+      const base = await ensurePrototype(cfg.url);
+      const model = base.clone(true);
+      normalizeHeight(model, cfg.targetHeight);
+
+      if (options.pos) {
+        model.position.set(options.pos.x, options.pos.y, options.pos.z);
+      } else {
+        const spawn = pointInFrontOfCamera().clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.6, 0, (Math.random() - 0.5) * 0.6));
+        const hh = getHalfHeight(model);
+        model.position.set(spawn.x, hh, spawn.z);
+      }
+
+      if (options.rotY !== undefined) model.rotation.y = options.rotY;
+
+      model.userData.modelKey = key;
+      if (!model.parent) scene.add(model);
+      draggable.push(model);
+
+      reconstructStacking(draggable);
+      return model;
+    } catch (err) {
+      console.error('Failed to load', key, err);
     }
   }
 
-  function getNearestWallSide(posXZ: THREE.Vector3) {
-    const half = ROOM_SIZE / 2;
-    const dLeft = Math.abs(posXZ.x - -half);
-    const dRight = Math.abs(posXZ.x - +half);
-    const dBack = Math.abs(posXZ.z - -half);
-    const dFront = Math.abs(posXZ.z - +half);
-    const min = Math.min(dLeft, dRight, dBack, dFront);
-    if (min === dLeft) return 'left';
-    if (min === dRight) return 'right';
-    if (min === dBack) return 'back';
-    return 'front';
+  function isPlantModelKey(key: string) {
+    return MODEL_MAP[key]?.url?.includes('/models/dynamic/') ?? false;
   }
 
-  function getWorldSize(obj: THREE.Object3D) {
-    const box = new THREE.Box3().setFromObject(obj);
-    const size = new THREE.Vector3();
-    box.getSize(size);
-    return size;
-  }
+  function getPlaceableBases(selectedKey: string, selectedCfg: ModelConfig, excludeObj: THREE.Object3D | null) {
+    return draggable.filter((obj) => {
+      if (!obj || obj === excludeObj) return false;
+      const baseKey = obj.userData?.modelKey;
+      if (!baseKey) return false;
+      const baseCfg = MODEL_MAP[baseKey];
+      if (!baseCfg) return false;
 
-  function placeInFrontOf(obj: THREE.Object3D, target: THREE.Object3D, gap = 0.2) {
-    obj.rotation.y = target.rotation.y;
-
-    const sofaSize = getWorldSize(target);
-    const tableSize = getWorldSize(obj);
-
-    const fwd = new THREE.Vector3(0, 0, 1)
-      .applyEuler(new THREE.Euler(0, target.rotation.y, 0))
-      .normalize();
-
-    const offset = sofaSize.z / 2 + tableSize.z / 2 + gap;
-
-    const pos = target.position
-      .clone()
-      .add(new THREE.Vector3(fwd.x, 0, fwd.z).multiplyScalar(offset));
-
-    const { x, z } = clampInRoomXZ(pos.x, pos.z);
-    const hh = getHalfHeight(obj);
-    obj.position.set(x, hh, z);
-  }
-
-  function placeAgainstWall(obj: THREE.Object3D, side: string, gap = 0.03) {
-    switch (side) {
-      case 'front':
-        obj.rotation.y = Math.PI;
-        break;
-      case 'left':
-        obj.rotation.y = -Math.PI / 2;
-        break;
-      case 'right':
-        obj.rotation.y = Math.PI / 2;
-        break;
-      case 'back':
-      default:
-        obj.rotation.y = 0;
-        break;
-    }
-
-    const size = getWorldSize(obj);
-    const half = ROOM_SIZE / 2;
-
-    const current = obj.position.clone();
-    const hh = getHalfHeight(obj);
-
-    if (side === 'back') {
-      obj.position.set(current.x, hh, -half + size.z / 2 + gap);
-    } else if (side === 'front') {
-      obj.position.set(current.x, hh, +half - size.z / 2 - gap);
-    } else if (side === 'left') {
-      obj.position.set(-half + size.x / 2 + gap, hh, current.z);
-    } else if (side === 'right') {
-      obj.position.set(+half - size.x / 2 - gap, hh, current.z);
-    }
-
-    obj.userData.wallSide = side;
-  }
-
-  function placeBesideOnWall(obj: THREE.Object3D, base: THREE.Object3D, sideSign = +1, gap = 0.12) {
-    obj.rotation.y = base.rotation.y;
-
-    const right = new THREE.Vector3(1, 0, 0)
-      .applyEuler(new THREE.Euler(0, base.rotation.y, 0))
-      .normalize();
-
-    const baseSize = getWorldSize(base);
-    const objSize = getWorldSize(obj);
-    const offset = baseSize.x / 2 + objSize.x / 2 + gap;
-
-    const target = base.position
-      .clone()
-      .add(right.multiplyScalar(sideSign * offset));
-
-    const { x, z } = clampInRoomXZ(target.x, target.z);
-    const hh = getHalfHeight(obj);
-    obj.position.set(x, hh, z);
-
-    const wall = base.userData?.wallSide || 'front';
-    placeAgainstWall(obj, wall, 0.02);
-  }
-
-  function oppositeSide(side: string) {
-    switch (side) {
-      case 'back':
-        return 'front';
-      case 'front':
-        return 'back';
-      case 'left':
-        return 'right';
-      case 'right':
-        return 'left';
-      default:
-        return 'front';
-    }
+      if (baseKey === 'flower_vase') return false;
+      if (selectedCfg?.onlyOnSideboard) return baseKey === 'sideboard';
+      if (PLANT_STAND_KEYS.has(selectedKey)) return false;
+      if (PLANT_STAND_KEYS.has(baseKey)) return isPlantModelKey(selectedKey);
+      if (isPlantModelKey(selectedKey)) return baseCfg.canPlaceOn || false;
+      return baseCfg.canPlaceOn || false;
+    });
   }
 
   function placeOnTopOf(obj: THREE.Object3D, base: THREE.Object3D, gapY = 0.02) {
     obj.rotation.y = base.rotation.y;
-
     const baseBox = new THREE.Box3().setFromObject(base);
     const objBox = new THREE.Box3().setFromObject(obj);
     const objSize = new THREE.Vector3();
     objBox.getSize(objSize);
-
-    const topY = baseBox.max.y;
-
-    const pos = base.position.clone();
-    const hh = objSize.y / 2;
-    obj.position.set(pos.x, topY + hh + gapY, pos.z);
-  }
-
-  async function addModelByKey(key: string, posXZ: THREE.Vector3 | null = null) {
-    const cfg = MODEL_MAP[key];
-    if (!cfg) return;
-    const base = await ensurePrototype(cfg.url);
-    const model = base.clone(true);
-
-    normalizeHeight(model, cfg.targetHeight);
-    const spawn = (posXZ ?? pointInFrontOfCamera()).clone().add(randJitter());
-    placeOnFloor(model, spawn);
-
-    if (cfg.wallSnap) {
-      const side = getNearestWallSide(spawn);
-      if (!model.parent) scene.add(model);
-      placeAgainstWall(model, side);
-    } else {
-      if (!model.parent) scene.add(model);
-    }
-
-    draggable.push(model);
+    obj.position.set(base.position.x, baseBox.max.y + objSize.y / 2 + gapY, base.position.z);
   }
 
   const raycaster = new THREE.Raycaster();
@@ -715,6 +444,87 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
   let dragOffset = new THREE.Vector3();
   let selectedHalfH = 0;
   let isPointerDown = false;
+  let previewModel: THREE.Object3D | null = null;
+  let previewBaseObj: THREE.Object3D | null = null;
+  let isDoubleClick = false;
+  let lastClickTime = 0;
+  let clickTimeout: any = null;
+
+  function removePreview() {
+    if (previewModel) {
+      scene.remove(previewModel);
+      previewModel = null;
+      previewBaseObj = null;
+    }
+  }
+
+  function updatePreview() {
+    if (!selected) {
+      removePreview();
+      return;
+    }
+    const checkPoint = selected.position.clone();
+    checkPoint.y += 1.0;
+
+    const downRay = new THREE.Raycaster(checkPoint, new THREE.Vector3(0, -1, 0), 0, 15);
+    const selectedKey = selected.userData?.modelKey;
+    const selectedCfg = selectedKey ? MODEL_MAP[selectedKey] : null;
+
+    if (selectedKey && FURNITURE_BLOCK_KEYS.has(selectedKey) && !isPlantModelKey(selectedKey)) {
+      removePreview();
+      return;
+    }
+
+    const placeableFurniture = getPlaceableBases(selectedKey!, selectedCfg!, selected);
+    const hits = downRay.intersectObjects(placeableFurniture, true);
+
+    let baseObj: THREE.Object3D | null = null;
+    if (hits.length > 0) {
+      let obj: any = hits[0].object;
+      while (obj && !draggable.includes(obj)) obj = obj.parent;
+      baseObj = obj;
+    } else {
+      let minDist = Infinity;
+      placeableFurniture.forEach((obj) => {
+        const dist = selected!.position.distanceTo(obj.position);
+        if (dist < minDist && dist < 3) {
+          minDist = dist;
+          baseObj = obj;
+        }
+      });
+    }
+
+    if (baseObj && baseObj !== selected) {
+      if (previewBaseObj === baseObj && previewModel) {
+        const baseBox = new THREE.Box3().setFromObject(baseObj);
+        const objBox = new THREE.Box3().setFromObject(previewModel);
+        const objSize = new THREE.Vector3();
+        objBox.getSize(objSize);
+        previewModel.position.set(baseObj.position.x, baseBox.max.y + objSize.y / 2 + 0.01, baseObj.position.z);
+        previewModel.rotation.y = selected.rotation.y;
+      } else {
+        removePreview();
+        previewModel = selected.clone(true);
+        previewModel.traverse((child: any) => {
+          if (child.isMesh && child.material) {
+            const mat = Array.isArray(child.material) ? child.material[0].clone() : child.material.clone();
+            mat.transparent = true;
+            mat.opacity = 0.4;
+            mat.emissive = new THREE.Color(0x4488ff).multiplyScalar(0.2);
+            child.material = mat;
+            child.castShadow = false;
+            child.receiveShadow = false;
+          }
+        });
+        placeOnTopOf(previewModel, baseObj, 0.01);
+        previewModel.rotation.y = selected.rotation.y;
+        scene.add(previewModel);
+        previewBaseObj = baseObj;
+      }
+    } else {
+      removePreview();
+    }
+  }
 
   function setMouseFromEvent(e: MouseEvent | PointerEvent) {
     const rect = renderer.domElement.getBoundingClientRect();
@@ -736,9 +546,10 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
       dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -selectedHalfH);
 
       const hitPoint = new THREE.Vector3();
-      raycaster.ray.intersectPlane(dragPlane, hitPoint);
-      dragOffset.copy(obj.position).sub(hitPoint);
+      raycaster.ray.intersectPlane(dragPlane!, hitPoint);
+      dragOffset.copy(selected!.position).sub(hitPoint);
 
+      removePreview();
       controls.enabled = false;
       renderer.domElement.style.cursor = 'grabbing';
     }
@@ -753,7 +564,17 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
       point.add(dragOffset);
       const { x, z } = clampInRoomXZ(point.x, point.z);
 
-      const side = selected?.userData?.wallSide;
+      if (selected.userData.placedOn) {
+        const baseObj = selected.userData.placedOn;
+        if (baseObj.userData.placedItems) {
+          const idx = baseObj.userData.placedItems.indexOf(selected);
+          if (idx !== -1) baseObj.userData.placedItems.splice(idx, 1);
+        }
+        selected.userData.placedOn = null;
+      }
+
+      const oldPos = selected.position.clone();
+      const side = selected.userData?.wallSide;
       if (side === 'back' || side === 'front') {
         selected.position.set(x, selectedHalfH, selected.position.z);
       } else if (side === 'left' || side === 'right') {
@@ -761,11 +582,63 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
       } else {
         selected.position.set(x, selectedHalfH, z);
       }
+
+      const placedItems = selected.userData?.placedItems;
+      if (placedItems && placedItems.length > 0) {
+        const offset = new THREE.Vector3().subVectors(selected.position, oldPos);
+        placedItems.forEach((item: THREE.Object3D) => {
+          if (item && item.parent) item.position.add(offset);
+        });
+      }
+      updatePreview();
     }
   }
 
   function drop() {
-    if (selected) selected.position.y = selectedHalfH;
+    removePreview();
+    if (selected) {
+      const dropPoint = selected.position.clone();
+      dropPoint.y += 1.0;
+      const downRay = new THREE.Raycaster(dropPoint, new THREE.Vector3(0, -1, 0), 0, 15);
+
+      const selectedKey = selected.userData?.modelKey;
+      const selectedCfg = selectedKey ? MODEL_MAP[selectedKey] : null;
+      const isFurniture = selectedKey && FURNITURE_BLOCK_KEYS.has(selectedKey) && !isPlantModelKey(selectedKey);
+
+      if (isFurniture) {
+        selected.position.y = selectedHalfH;
+        selected.userData.placedOn = null;
+      } else {
+        const placeableFurniture = getPlaceableBases(selectedKey!, selectedCfg!, selected);
+        const hits = downRay.intersectObjects(placeableFurniture, true);
+        let baseObj: THREE.Object3D | null = null;
+
+        if (hits.length > 0) {
+          let obj: any = hits[0].object;
+          while (obj && !draggable.includes(obj)) obj = obj.parent;
+          baseObj = obj;
+        } else {
+          let minDist = Infinity;
+          placeableFurniture.forEach((obj) => {
+            const dist = selected!.position.distanceTo(obj.position);
+            if (dist < minDist && dist < 3) {
+              minDist = dist;
+              baseObj = obj;
+            }
+          });
+        }
+
+        if (baseObj && baseObj !== selected) {
+          placeOnTopOf(selected, baseObj, 0.01);
+          selected.userData.placedOn = baseObj;
+          if (!baseObj.userData.placedItems) baseObj.userData.placedItems = [];
+          if (!baseObj.userData.placedItems.includes(selected)) baseObj.userData.placedItems.push(selected);
+        } else {
+          selected.position.y = selectedHalfH;
+          selected.userData.placedOn = null;
+        }
+      }
+    }
     selected = null;
     dragPlane = null;
     controls.enabled = true;
@@ -783,6 +656,16 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
         let obj: any = hits[0].object;
         while (obj && !draggable.includes(obj)) obj = obj.parent;
         if (obj) {
+          const placedItems = obj.userData?.placedItems;
+          if (placedItems && placedItems.length > 0) {
+            placedItems.forEach((item: THREE.Object3D) => {
+              if (item && item.parent) {
+                const hh = getHalfHeight(item);
+                item.position.y = hh;
+                item.userData.placedOn = null;
+              }
+            });
+          }
           scene.remove(obj);
           const idx = draggable.indexOf(obj);
           if (idx !== -1) draggable.splice(idx, 1);
@@ -790,8 +673,11 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
       }
       return;
     }
-
     if (e.button === 0) {
+      const now = Date.now();
+      if (now - lastClickTime < 300) return;
+      lastClickTime = now;
+      clickTimeout = setTimeout(() => { clickTimeout = null; }, 300);
       isPointerDown = true;
       pick(e);
     }
@@ -804,9 +690,66 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
 
   window.addEventListener('pointerup', () => {
     isPointerDown = false;
+    if (isDoubleClick) {
+      isDoubleClick = false;
+      selected = null;
+      return;
+    }
     drop();
   });
 
+  renderer.domElement.addEventListener('dblclick', (e) => {
+    e.preventDefault();
+    isDoubleClick = true;
+    selected = null;
+    if (clickTimeout) { clearTimeout(clickTimeout); clickTimeout = null; }
+
+    setMouseFromEvent(e);
+    raycaster.setFromCamera(mouseNDC, camera);
+    const hits = raycaster.intersectObjects(draggable, true);
+    if (hits.length) {
+      let obj: any = hits[0].object;
+      while (obj && !draggable.includes(obj)) obj = obj.parent;
+      if (obj) {
+        obj.rotation.y += Math.PI / 2;
+        const placedItems = obj.userData?.placedItems;
+        if (placedItems) {
+          placedItems.forEach((item: THREE.Object3D) => {
+            item.rotation.y += Math.PI / 2;
+            placeOnTopOf(item, obj, 0.01);
+          });
+        }
+        const wallSide = obj.userData?.wallSide;
+        if (wallSide) {
+          if (placedItems) {
+            placedItems.forEach((item: THREE.Object3D) => placeOnTopOf(item, obj, 0.01));
+          }
+        }
+      }
+    }
+  });
+
+  function renderModelButtons() {
+    if (!toolbarElement) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'model-buttons-row';
+    wrap.style.display = 'flex';
+    wrap.style.gap = '8px';
+    wrap.style.overflowX = 'auto';
+    wrap.style.padding = '8px';
+
+    for (const [key, cfg] of Object.entries(MODEL_MAP)) {
+      const btn = document.createElement('button');
+      btn.dataset.model = key;
+      btn.textContent = cfg.label;
+      btn.style.padding = '6px 12px';
+      btn.style.whiteSpace = 'nowrap';
+      btn.style.cursor = 'pointer';
+      wrap.appendChild(btn);
+    }
+    while (toolbarElement.firstChild) toolbarElement.removeChild(toolbarElement.firstChild);
+    toolbarElement.appendChild(wrap);
+  }
   renderModelButtons();
 
   toolbarElement.addEventListener('click', (e: any) => {
@@ -815,6 +758,168 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
     addModelByKey(key);
   });
 
+  const controlsDiv = document.createElement('div');
+  Object.assign(controlsDiv.style, {
+    position: 'absolute', bottom: '10px', right: '10px',
+    background: 'rgba(255,255,255,0.9)', padding: '10px',
+    borderRadius: '8px', display: 'flex', flexDirection: 'column',
+    gap: '5px', fontSize: '14px', zIndex: '100'
+  });
+  controlsDiv.innerHTML = `
+    <button id="btn-save" style="cursor:pointer; width:100%; padding:8px; background:#4CAF50; color:white; border:none; border-radius:4px; font-weight:bold; margin-bottom:10px;">
+      💾 현재 상태 저장
+    </button>
+    <div style="border-top:1px solid #ddd; padding-top:10px; margin-top:5px;">
+      <div style="margin-bottom:5px;"><strong>방 크기 설정</strong></div>
+      <div style="margin-bottom:5px;"><label>가로(m): <input type="number" id="rw" value="15" style="width:50px"></label></div>
+      <div style="margin-bottom:5px;"><label>세로(m): <input type="number" id="rd" value="15" style="width:50px"></label></div>
+      <div style="margin-bottom:5px;"><label>높이(m): <input type="number" id="rh" value="10" style="width:50px"></label></div>
+      <button id="btn-resize" style="cursor:pointer; width:100%; padding:5px;">적용</button>
+    </div>
+  `;
+  appElement.appendChild(controlsDiv);
+
+  function showToast(container: HTMLElement, message: string, type: 'success' | 'error') {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    
+    Object.assign(toast.style, {
+        position: 'absolute',
+        top: '10%',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        padding: '10px 20px',
+        borderRadius: '30px',
+        color: '#fff',
+        fontWeight: '600',
+        backgroundColor: type === 'success' ? '#4CAF50' : '#F44336',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        zIndex: '9999',
+        opacity: '0',
+        transition: 'opacity 0.4s, transform 0.4s',
+    });
+    
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(-50%) translateY(10px)';
+    });
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(-50%) translateY(0px)';
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+  }
+  
+  const btnSave = document.getElementById('btn-save');
+  if (btnSave) {
+    btnSave.addEventListener('click', async () => {
+      const jsonString = exportSceneToJson();
+      const token = sessionStorage.getItem("bearerToken");
+
+      try {
+        const response = await fetch('/room', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` }),
+          },
+          credentials: 'include',
+          body: jsonString
+        });
+
+        if (response.ok) {
+          showToast(appElement, '성공적으로 저장되었습니다!', 'success');
+        } else {
+          if (response.status === 403) showToast(appElement, '권한이 없습니다. 다시 로그인해 주세요.', 'error');
+          else showToast(appElement, '저장에 실패했습니다.', 'error');
+        }
+      } catch (error) {
+        console.error('Error saving room:', error);
+        showToast(appElement, '오류가 발생했습니다.', 'error');
+      }
+    });
+  }
+
+  function updateRoomSize(w: number, d: number, h: number) {
+    const minSize = 5, maxSize = 50, minH = 3, maxH = 30;
+    ROOM_WIDTH = THREE.MathUtils.clamp(w, minSize, maxSize);
+    ROOM_DEPTH = THREE.MathUtils.clamp(d, minSize, maxSize);
+    WALL_HEIGHT = THREE.MathUtils.clamp(h, minH, maxH);
+    buildRoom();
+
+    draggable.forEach(obj => {
+      const { x, z } = clampInRoomXZ(obj.position.x, obj.position.z);
+      const placedOn = obj.userData?.placedOn;
+      if (placedOn && placedOn.parent) {
+        const baseXZ = clampInRoomXZ(placedOn.position.x, placedOn.position.z);
+        const baseHh = getHalfHeight(placedOn);
+        placedOn.position.set(baseXZ.x, baseHh, baseXZ.z);
+        placeOnTopOf(obj, placedOn, 0.01);
+      } else {
+        const hh = getHalfHeight(obj);
+        obj.position.set(x, hh, z);
+      }
+    });
+    clampCameraToRoom();
+  }
+
+  const btnResize = document.getElementById('btn-resize');
+  if (btnResize) {
+    btnResize.addEventListener('click', () => {
+      const w = parseFloat((document.getElementById('rw') as HTMLInputElement).value);
+      const d = parseFloat((document.getElementById('rd') as HTMLInputElement).value);
+      const h = parseFloat((document.getElementById('rh') as HTMLInputElement).value);
+      if (!isNaN(w)) updateRoomSize(w, d, h);
+    });
+  }
+
+  const keys: Record<string, boolean> = {};
+  window.addEventListener('keydown', (e) => { keys[e.code] = true; });
+  window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+  function handleCameraMovement() {
+    const moveSpeed = 0.15;
+    if (!Object.values(keys).some(k => k)) return;
+
+    const dir = new THREE.Vector3();
+    camera.getWorldDirection(dir);
+    const forward = new THREE.Vector3(dir.x, 0, dir.z).normalize();
+    const right = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
+    const moveVec = new THREE.Vector3();
+
+    if (keys.ArrowUp || keys.KeyW) moveVec.add(forward.multiplyScalar(moveSpeed));
+    if (keys.ArrowDown || keys.KeyS) moveVec.add(forward.multiplyScalar(-moveSpeed));
+    if (keys.ArrowRight || keys.KeyD) moveVec.add(right.multiplyScalar(moveSpeed));
+    if (keys.ArrowLeft || keys.KeyA) moveVec.add(right.multiplyScalar(-moveSpeed));
+
+    camera.position.add(moveVec);
+    controls.target.add(moveVec);
+  }
+
+  function clampCameraToRoom() {
+    const margin = 0.5;
+    const minY = 0.5;
+    const maxY = WALL_HEIGHT - 0.5;
+    const halfW = ROOM_WIDTH / 2 - margin;
+    const halfD = ROOM_DEPTH / 2 - margin;
+
+    camera.position.x = THREE.MathUtils.clamp(camera.position.x, -halfW, halfW);
+    camera.position.y = THREE.MathUtils.clamp(camera.position.y, minY, maxY);
+    camera.position.z = THREE.MathUtils.clamp(camera.position.z, -halfD, halfD);
+
+    controls.target.x = THREE.MathUtils.clamp(controls.target.x, -halfW, halfW);
+    controls.target.y = THREE.MathUtils.clamp(controls.target.y, 0, WALL_HEIGHT);
+    controls.target.z = THREE.MathUtils.clamp(controls.target.z, -halfD, halfD);
+
+    controls.minDistance = 1;
+    controls.maxDistance = Math.max(ROOM_WIDTH, ROOM_DEPTH, WALL_HEIGHT) * 1.5;
+  }
+
+  camera.position.set(Math.min(ROOM_WIDTH / 2 - 1, 8), WALL_HEIGHT * 0.6, Math.min(ROOM_DEPTH / 2 - 1, 8));
+
   function onResize() {
     const width = appElement.clientWidth;
     const height = appElement.clientHeight;
@@ -822,128 +927,109 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
     camera.updateProjectionMatrix();
     renderer.setSize(width, height);
   }
-
   window.addEventListener('resize', onResize);
 
   const hint = document.createElement('div');
   hint.className = 'planterior-hint';
+  Object.assign(hint.style, {
+    position: 'absolute', bottom: '10px', left: '10px',
+    color: '#333', background: 'rgba(255,255,255,0.8)',
+    padding: '10px', borderRadius: '8px', pointerEvents: 'none'
+  });
   hint.innerHTML = `
-<b>조작 방법</b><br/>
-- 상단 버튼으로 식물 모델 추가<br/>
-- 드래그: 바닥(XZ) 위 이동(높이 고정)<br/>
-- 우클릭: 객체 삭제<br/>
-- Orbit: 좌클릭 회전 / 휠 줌 / 우클릭 패닝
-`;
+    <b>조작 방법</b><br/>
+    - 상단 버튼: 모델 추가<br/>
+    - 드래그: 이동 (가구 위 쌓기 가능)<br/>
+    - 더블클릭: 90도 회전<br/>
+    - 우클릭: 삭제<br/>
+    - WASD/화살표: 카메라 이동
+  `;
   appElement.appendChild(hint);
 
   renderer.setAnimationLoop(() => {
+    handleCameraMovement();
     controls.update();
+    clampCameraToRoom();
     renderer.render(scene, camera);
   });
 
-  (async function spawnInitialSofaAndTable() {
-    const sofaCfg = MODEL_MAP.sofa;
-    if (!sofaCfg) return;
+  function exportSceneToJson() {
+    const data = {
+      room: { width: ROOM_WIDTH, depth: ROOM_DEPTH, height: WALL_HEIGHT },
+      coordinates: draggable.map((obj) => ({
+        name: obj.userData.modelKey,
+        x: parseFloat(obj.position.x.toFixed(3)),
+        y: parseFloat(obj.position.y.toFixed(3)),
+        z: parseFloat(obj.position.z.toFixed(3)),
+        rotation: parseFloat(obj.rotation.y.toFixed(3))
+      })),
+    };
+    return JSON.stringify(data);
+  }
 
-    const sofaBase = await ensurePrototype(sofaCfg.url);
-    const sofa = sofaBase.clone(true);
-    normalizeHeight(sofa, sofaCfg.targetHeight);
-    placeOnFloor(sofa, new THREE.Vector3(0, 0, 0));
-    scene.add(sofa);
+  async function importSceneFromJson(jsonString: string) {
+    try {
+      const json = JSON.parse(jsonString);
+      [...draggable].forEach(obj => scene.remove(obj));
+      draggable.length = 0;
 
-    placeAgainstWall(sofa, 'back', 0.03);
-    const hh = getHalfHeight(sofa);
-    sofa.position.set(0, hh, sofa.position.z);
+      if (json.room) {
+        updateRoomSize(Number(json.room.width), Number(json.room.depth), Number(json.room.height));
+        const inputs = { rw: json.room.width, rd: json.room.depth, rh: json.room.height };
+        Object.entries(inputs).forEach(([id, val]) => {
+          const el = document.getElementById(id) as HTMLInputElement;
+          if (el) el.value = String(val);
+        });
+      }
 
-    const tableCfg = MODEL_MAP.coffee_table;
-    if (!tableCfg) return;
+      const items = json.coordinates || json.objects || [];
+      await Promise.all(items.map((item: any) => {
+        const key = item.name || item.modelKey;
+        const posX = item.x !== undefined ? item.x : item.position?.x;
+        const posY = item.y !== undefined ? item.y : item.position?.y;
+        const posZ = item.z !== undefined ? item.z : item.position?.z;
+        const rotY = item.rotation !== undefined ? item.rotation : item.rotation?.y;
 
-    const tableBase = await ensurePrototype(tableCfg.url);
-    const table = tableBase.clone(true);
-    normalizeHeight(table, tableCfg.targetHeight);
+        return addModelByKey(key, { pos: { x: posX, y: posY, z: posZ }, rotY });
+      }));
 
-    scene.add(table);
-    placeInFrontOf(table, sofa, 0.8);
-  })();
-
-  (async function spawnSideboardAndTV() {
-    const sofa = draggable.find(
-      (o: any) => o.userData?.kind === 'furniture' && /sofa/i.test(o.name || '')
-    ) ||
-      draggable.find(
-        (o) => o.userData?.kind === 'furniture' && o.userData.wallSide
-      ) ||
-      null;
-
-    const sofaSide = sofa?.userData?.wallSide;
-    const boardSide = oppositeSide(sofaSide);
-
-    const boardCfg = MODEL_MAP.sideboard;
-    if (!boardCfg) return;
-    const boardBase = await ensurePrototype(boardCfg.url);
-    const board = boardBase.clone(true);
-    board.userData.kind = 'furniture';
-    normalizeHeight(board, boardCfg.targetHeight);
-
-    placeOnFloor(board, new THREE.Vector3(0, 0, 0));
-    scene.add(board);
-
-    placeAgainstWall(board, boardSide, 0.02);
-    const bh = getHalfHeight(board);
-    if (boardSide === 'back' || boardSide === 'front')
-      board.position.set(0, bh, board.position.z);
-    if (boardSide === 'left' || boardSide === 'right')
-      board.position.set(board.position.x, bh, 0);
-
-    const tvCfg = MODEL_MAP.television;
-    if (!tvCfg) return;
-    const tvBase = await ensurePrototype(tvCfg.url);
-    const tv = tvBase.clone(true);
-    tv.userData.kind = 'furniture';
-    normalizeHeight(tv, tvCfg.targetHeight);
-
-    scene.add(tv);
-    placeOnTopOf(tv, board, 0.015);
-
-    board.userData.role = 'sideboard';
-    tv.userData.role = 'tv';
-  })();
-
-  (async function spawnConsoleTableAndVaseOnFrontLeft() {
-    const half = ROOM_SIZE / 2;
-
-    const tCfg = MODEL_MAP.console_table;
-    if (!tCfg) return;
-    const tBase = await ensurePrototype(tCfg.url);
-    const table = tBase.clone(true);
-    table.userData.kind = 'furniture';
-    normalizeHeight(table, tCfg.targetHeight);
-
-    scene.add(table);
-    placeAgainstWall(table, 'front', 0.02);
-
-    const tSize = getWorldSize(table);
-    const margin = 1.5;
-    const hh = getHalfHeight(table);
-    table.position.set(half - tSize.x / 2 - margin, hh, table.position.z);
-
-    const vCfg = MODEL_MAP.flower_vase;
-    if (!vCfg) return;
-    const vBase = await ensurePrototype(vCfg.url);
-    const vase = vBase.clone(true);
-    vase.userData.kind = 'decor';
-    normalizeHeight(vase, vCfg.targetHeight);
-
-    scene.add(vase);
-    placeOnTopOf(vase, table, 0.01);
-  })();
-
-  return () => {
-    renderer.setAnimationLoop(null);
-    renderer.dispose();
-    window.removeEventListener('resize', onResize);
-    if (appElement.contains(renderer.domElement)) {
-      appElement.removeChild(renderer.domElement);
+      reconstructStacking(draggable);
+    } catch (e) {
+      console.error("JSON 파싱 또는 로딩 실패", e);
     }
+  }
+
+  function reconstructStacking(objects: THREE.Object3D[]) {
+    const EPSILON = 0.0001;
+    objects.forEach(child => {
+      const potentialParents = objects.filter(parent => {
+        if (child === parent) return false;
+        if (parent.position.y >= child.position.y) return false;
+        const dx = Math.abs(child.position.x - parent.position.x);
+        const dz = Math.abs(child.position.z - parent.position.z);
+        return dx < EPSILON && dz < EPSILON;
+      });
+
+      if (potentialParents.length === 0) return;
+      potentialParents.sort((a, b) => b.position.y - a.position.y);
+      const realParent = potentialParents[0];
+
+      child.userData.placedOn = realParent;
+      if (!realParent.userData.placedItems) realParent.userData.placedItems = [];
+      if (!realParent.userData.placedItems.includes(child)) realParent.userData.placedItems.push(child);
+    });
+  }
+
+  return {
+    cleanup: () => {
+      renderer.setAnimationLoop(null);
+      renderer.dispose();
+      window.removeEventListener('resize', onResize);
+      if (appElement.contains(renderer.domElement)) appElement.removeChild(renderer.domElement);
+      if (appElement.contains(controlsDiv)) appElement.removeChild(controlsDiv);
+      if (appElement.contains(hint)) appElement.removeChild(hint);
+    },
+    save: exportSceneToJson,
+    load: importSceneFromJson
   };
 }

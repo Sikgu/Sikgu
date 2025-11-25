@@ -7,37 +7,54 @@ export default defineConfig({
   plugins: [
     react(),
     runtimeErrorOverlay(),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
-      ? [
-          await import("@replit/vite-plugin-cartographer").then((m) =>
-            m.cartographer(),
-          ),
-        ]
-      : []),
   ],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path.resolve(import.meta.dirname, "shared"),
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),
     },
   },
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+    proxy: {
+      '/auth': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/users': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/carts': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/subscriptions': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/orders': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },      
+      '/room': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+    },
+  },
   root: path.resolve(import.meta.dirname, "client"),
+
+  publicDir: path.resolve(import.meta.dirname, "public"),
+  
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
-  },
-  server: {
-    host: "0.0.0.0",
-    port: 5000,
-    strictPort: true,
-    hmr: process.env.REPL_ID !== undefined ? {
-      clientPort: 443,
-    } : true,
-    fs: {
-      strict: true,
-      deny: ["**/.*"],
-    },
   },
 });

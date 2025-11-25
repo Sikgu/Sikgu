@@ -2,8 +2,10 @@ package com.sikgu.sikgubackend.config;
 
 import com.sikgu.sikgubackend.security.jwt.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,6 +25,9 @@ import org.springframework.web.filter.CorsFilter;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    @Value("${app.frontend.url}")
+    private String frontendBaseUrl;
+
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -30,7 +35,34 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/h2-console/**", "/auth/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/image/**", "/subscriptions", "/subscriptions/**").permitAll()
+                        .requestMatchers(
+                                HttpMethod.OPTIONS, "/**"
+                        )
+                        .permitAll()
+                        .requestMatchers(
+                                "/h2-console/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+                        .requestMatchers(
+                                "/auth/login",
+                                "/auth/signup",
+                                "/auth/reset-password-request",
+                                "/auth/reset-password",
+                                "/reset-page"
+                        ).permitAll()
+                        .requestMatchers(
+                                "/",
+                                "/image/**",
+                                "/plans",
+                                "/plans/**",
+                                "/users/**",
+                                "/subscriptions", "/subscriptions/**",
+                                "/carts", "/carts/**",
+                                "/orders", "/orders/purchase",
+                                "/room"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.disable())
@@ -61,8 +93,8 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("https://d1ktwhlebd1rc2.cloudfront.net/");
-        config.addAllowedOrigin("http://127.0.0.1:5000/");
+        config.addAllowedOrigin(frontendBaseUrl);
+        config.addAllowedOrigin("http://localhost:5173");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);

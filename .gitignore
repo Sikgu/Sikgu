@@ -6,3 +6,7 @@ frontend/PlantSubscription/.env.*
 frontend/PlantSubscription/.next/
 frontend/PlantSubscription/dist/
 frontend/PlantSubscription/build/
+# macOS system files
+.DS_Store
+*/.DS_Store
+*.DS_Store
