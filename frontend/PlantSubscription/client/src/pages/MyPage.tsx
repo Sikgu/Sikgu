@@ -576,6 +576,7 @@ export default function MyPage() {
                               };
 
                               const isCancelled = subscription.paymentStatus === 'CANCELLED' || 
+                                                 subscription.paymentStatus === 'CANCELED' ||
                                                  subscription.paymentStatus === 'CANCELED_AT_PERIOD_END' ||
                                                  subscription.paymentStatus === 'CANCELLED_BY_USER';
 
@@ -678,12 +679,12 @@ export default function MyPage() {
                               <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
                                 order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
                                 order.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                                order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                                (order.status === 'CANCELLED' || order.status === 'CANCELED') ? 'bg-red-100 text-red-800' :
                                 'bg-gray-100 text-gray-800'
                               }`}>
                                 {order.status === 'PENDING' ? '처리 중' :
                                  order.status === 'COMPLETED' ? '완료' :
-                                 order.status === 'CANCELLED' ? '주문 취소됨' :
+                                 (order.status === 'CANCELLED' || order.status === 'CANCELED') ? '주문 취소됨' :
                                  order.status}
                               </span>
                             </div>
@@ -713,7 +714,7 @@ export default function MyPage() {
                                 <p className="font-semibold">총 결제 금액</p>
                                 <p className="text-xl font-bold text-forest">{order.totalAmount} 코인</p>
                               </div>
-                              {order.status === 'CANCELLED' ? (
+                              {(order.status === 'CANCELLED' || order.status === 'CANCELED') ? (
                                 <div className="w-full py-2 text-center bg-gray-100 text-gray-600 rounded font-medium">
                                   주문 취소됨
                                 </div>
