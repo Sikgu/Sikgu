@@ -152,12 +152,26 @@ export default function MyPage() {
         const errorData = await response.json();
         throw new Error(errorData.message || '주문 취소에 실패했습니다.');
       }
-      return await response.json();
+      // 백엔드 응답을 반환
+      const cancelledOrder = await response.json();
+      console.log('Backend response:', cancelledOrder);
+      return { orderId, cancelledOrder };
     },
-    onSuccess: async (data) => {
-      // 주문 목록과 사용자 정보(코인) 갱신
-      await queryClient.invalidateQueries({ queryKey: ['/orders'] });
-      await queryClient.invalidateQueries({ queryKey: ['/auth/me'] });
+    onSuccess: async ({ orderId, cancelledOrder }) => {
+      console.log('Order cancelled:', orderId, 'Status:', cancelledOrder?.status);
+      
+      // 백엔드에서 반환한 실제 상태 값으로 업데이트
+      const actualStatus = cancelledOrder?.status || 'CANCELLED';
+      
+      // 쿼리 캐시를 즉시 업데이트하여 UI에 반영
+      queryClient.setQueryData<OrderHistory[]>(['/orders'], (oldOrders) => {
+        if (!oldOrders) return oldOrders;
+        return oldOrders.map(order => 
+          order.orderId === orderId 
+            ? { ...order, status: actualStatus }
+            : order
+        );
+      });
       
       // 프로필의 코인 정보도 갱신
       try {
@@ -172,6 +186,12 @@ export default function MyPage() {
       } catch (error) {
         console.error("코인 정보 갱신 실패:", error);
       }
+      
+      // 서버 데이터 재조회는 약간의 지연을 두고 실행
+      setTimeout(async () => {
+        await queryClient.invalidateQueries({ queryKey: ['/orders'] });
+        await queryClient.invalidateQueries({ queryKey: ['/auth/me'] });
+      }, 500);
       
       toast({
         title: "주문이 취소되었습니다",
@@ -711,7 +731,11 @@ export default function MyPage() {
                                 <p className="font-semibold">총 결제 금액</p>
                                 <p className="text-xl font-bold text-forest">{order.totalAmount} 코인</p>
                               </div>
-                              {order.status !== 'CANCELLED' ? (
+                              {order.status === 'CANCELLED' ? (
+                                <div className="w-full py-2 text-center bg-gray-100 text-gray-600 rounded font-medium">
+                                  주문 취소됨
+                                </div>
+                              ) : (
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
                                     <Button
@@ -739,10 +763,6 @@ export default function MyPage() {
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
                                 </AlertDialog>
-                              ) : (
-                                <div className="w-full py-2 text-center bg-gray-100 text-gray-600 rounded font-medium">
-                                  주문 취소됨
-                                </div>
                               )}
                             </div>
                           </div>
