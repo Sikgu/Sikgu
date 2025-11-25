@@ -49,7 +49,8 @@ public class SecurityConfig {
                                 "/auth/login",
                                 "/auth/signup",
                                 "/auth/reset-password-request",
-                                "/auth/reset-password"
+                                "/auth/reset-password",
+                                "/reset-page"
                         ).permitAll()
                         .requestMatchers(
                                 "/",
