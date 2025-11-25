@@ -25,7 +25,7 @@ const plantDetails = [
     description: "틸란드시아는 흙 없이도 자랄 수 있는 독특한 공중식물입니다. 공기 중의 수분과 영양분을 흡수하여 생존하며, 독특한 외형으로 인테리어 소품으로 인기가 높습니다.",
     images: [
       "/images/tillandsia.jpg",
-      "https://images.unsplash.com/photo-1565006836881-0c92f7d5d334?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
+      "https://via.placeholder.com/800x800/f0f0f0/666666?text=이미지+준비중"
     ],
     careGuide: {
       watering: "주 2-3회 분무기로 살짝 뿌려주세요. 아침 시간대에 물을 주는 것이 좋습니다.",
@@ -49,7 +49,7 @@ const plantDetails = [
     description: "미니 선인장은 물을 적게 주고 햇빛을 좋아하는 관리하기 쉬운 식물입니다. 작은 크기로 책상이나 창가에 두기 좋으며, 다양한 품종을 모으는 재미가 있습니다.",
     images: [
       "/images/mini-cactus.jpg",
-      "https://images.unsplash.com/photo-1558603668-6570496b66f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
+      "https://via.placeholder.com/800x800/f0f0f0/666666?text=이미지+준비중"
     ],
     careGuide: {
       watering: "흙이 완전히 마른 후 물을 주세요 (2-3주에 한 번). 겨울에는 한 달에 한 번 정도로 줄여주세요.",
@@ -73,7 +73,7 @@ const plantDetails = [
     description: "칼라데아 오르비폴리아는 독특한 줄무늬 잎이 특징인 관엽식물입니다. 높은 습도를 좋아하며, 섬세한 관리가 필요하지만 그만큼 아름다운 잎무늬를 자랑합니다.",
     images: [
       "/images/calathea-orbifolia.jpg",
-      "https://images.unsplash.com/photo-1597689879203-46e57cd74336?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
+      "https://via.placeholder.com/800x800/f0f0f0/666666?text=이미지+준비중"
     ],
     careGuide: {
       watering: "흙 표면이 살짝 마르면 물을 주세요. 뿌리 부분이 항상 촉촉하게 유지되도록 하세요.",
@@ -97,7 +97,7 @@ const plantDetails = [
     description: "스킨답서스는 관리가 쉽고 공기정화 능력이 뛰어난 덩굴성 식물입니다. 반음지에서도 잘 자라며, 물꽂이로 쉽게 번식할 수 있어 초보자에게 인기가 높습니다.",
     images: [
       "/images/scindapsus.jpg",
-      "https://images.unsplash.com/photo-1597082980533-ec368d0b5c0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
+      "https://via.placeholder.com/800x800/f0f0f0/666666?text=이미지+준비중"
     ],
     careGuide: {
       watering: "흙 표면이 마르면 물을 주세요. 주 1-2회 정도가 적당합니다.",
@@ -121,7 +121,7 @@ const plantDetails = [
     description: "몬스테라는 구멍이 뚫린 독특한 잎으로 유명한 열대식물입니다. 인스타그램에서 가장 인기 있는 인테리어 식물 중 하나로, 성장하면서 잎에 아름다운 구멍과 갈래가 생깁니다.",
     images: [
       "/images/monstera.jpg",
-      "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
+      "https://via.placeholder.com/800x800/f0f0f0/666666?text=이미지+준비중"
     ],
     careGuide: {
       watering: "흙 표면 2-3cm가 마르면 물을 주세요. 겨울에는 물주기 횟수를 줄여주세요.",
@@ -145,7 +145,7 @@ const plantDetails = [
     description: "여인초는 우아한 잎의 형태와 섬세한 아름다움으로 사랑받는 관엽식물입니다. 밝은 햇빛을 좋아하며, 적절한 관리로 오랫동안 건강하게 키울 수 있습니다.",
     images: [
       "/images/ladys-slipper.jpg",
-      "https://images.unsplash.com/photo-1463320726281-696a485928c7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
+      "https://via.placeholder.com/800x800/f0f0f0/666666?text=이미지+준비중"
     ],
     careGuide: {
       watering: "흙이 촉촉하게 유지되도록 물을 주세요. 주 2-3회 정도가 적당합니다.",
@@ -169,7 +169,7 @@ const plantDetails = [
     description: "스파티필룸은 평화백합이라고도 불리며, 우아한 흰색 꽃이 특징인 공기정화 식물입니다. 반음지에서도 잘 자라며, 물을 좋아해 관리가 쉽습니다.",
     images: [
       "/images/spathiphyllum.jpg",
-      "https://images.unsplash.com/photo-1591958911259-bee2173bdccc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
+      "https://via.placeholder.com/800x800/f0f0f0/666666?text=이미지+준비중"
     ],
     careGuide: {
       watering: "흙이 항상 촉촉하게 유지되도록 하세요. 잎이 처지면 물이 부족한 신호입니다.",
@@ -193,7 +193,7 @@ const plantDetails = [
     description: "아레카야자는 열대 분위기를 연출하는 대표적인 관엽식물입니다. 공기정화 능력이 뛰어나며, 우아한 잎 모양으로 인테리어 효과가 좋습니다.",
     images: [
       "/images/areca-palm.jpg",
-      "https://images.unsplash.com/photo-1612363148951-f0e669f6b4b1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
+      "https://via.placeholder.com/800x800/f0f0f0/666666?text=이미지+준비중"
     ],
     careGuide: {
       watering: "흙 표면이 마르면 충분히 물을 주세요. 주 1-2회 정도가 적당합니다.",
@@ -217,7 +217,7 @@ const plantDetails = [
     description: "고무나무는 두껍고 윤기나는 잎이 특징인 관엽식물입니다. 관리가 쉽고 공기정화 효과가 뛰어나며, 큰 잎으로 인테리어 효과가 좋습니다.",
     images: [
       "/images/rubber-tree.jpg",
-      "https://images.unsplash.com/photo-1600411833196-7c1f6b1a8b90?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
+      "https://via.placeholder.com/800x800/f0f0f0/666666?text=이미지+준비중"
     ],
     careGuide: {
       watering: "흙 표면이 2-3cm 마르면 물을 주세요. 과습을 피하고 적당히 건조하게 관리하세요.",
@@ -241,7 +241,7 @@ const plantDetails = [
     description: "극락조는 새의 부리를 닮은 독특한 꽃이 피는 식물입니다. 큰 잎과 이국적인 분위기로 실내 정원의 포인트가 되는 식물입니다.",
     images: [
       "/images/bird-of-paradise.jpg",
-      "https://images.unsplash.com/photo-1509423350716-97f2360af3e4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
+      "https://via.placeholder.com/800x800/f0f0f0/666666?text=이미지+준비중"
     ],
     careGuide: {
       watering: "흙이 촉촉하게 유지되도록 물을 주세요. 성장기에는 물을 충분히 주세요.",
@@ -265,7 +265,7 @@ const plantDetails = [
     description: "유포르비아 트리코나는 삼각기둥 모양의 줄기가 특징인 다육식물입니다. 독특한 외형으로 인기가 높으며, 관리가 매우 쉽습니다.",
     images: [
       "/images/euphorbia-trigona.jpg",
-      "https://images.unsplash.com/photo-1615671524827-c1fe3973b648?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
+      "https://via.placeholder.com/800x800/f0f0f0/666666?text=이미지+준비중"
     ],
     careGuide: {
       watering: "흙이 완전히 마른 후 물을 주세요. 겨울에는 한 달에 한 번 정도만 주세요.",
@@ -289,7 +289,7 @@ const plantDetails = [
     description: "필로덴드론 콩고는 새로 나오는 잎이 붉은색이었다가 점차 녹색으로 변하는 아름다운 관엽식물입니다. 관리가 쉽고 공기정화 효과가 뛰어납니다.",
     images: [
       "/images/philodendron.jpg",
-      "https://images.unsplash.com/photo-1591958911259-bee2173bdccc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=800"
+      "https://via.placeholder.com/800x800/f0f0f0/666666?text=이미지+준비중"
     ],
     careGuide: {
       watering: "흙 표면이 마르면 물을 주세요. 주 1-2회 정도가 적당합니다.",
