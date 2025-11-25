@@ -152,22 +152,21 @@ export default function MyPage() {
         const errorData = await response.json();
         throw new Error(errorData.message || '주문 취소에 실패했습니다.');
       }
-      return await response.json();
+      const data = await response.json();
+      return { ...data, orderId }; // orderId 포함하여 반환
     },
-    onSuccess: async (cancelledOrder) => {
+    onSuccess: async (data) => {
+      const cancelledOrderId = data.orderId;
+      
       // 쿼리 캐시를 즉시 업데이트하여 UI에 반영
       queryClient.setQueryData<OrderHistory[]>(['/orders'], (oldOrders) => {
         if (!oldOrders) return oldOrders;
         return oldOrders.map(order => 
-          order.orderId === cancelledOrder.orderId 
+          order.orderId === cancelledOrderId 
             ? { ...order, status: 'CANCELLED' }
             : order
         );
       });
-      
-      // 추가로 서버에서 최신 데이터 가져오기
-      await queryClient.invalidateQueries({ queryKey: ['/orders'] });
-      await queryClient.invalidateQueries({ queryKey: ['/auth/me'] });
       
       // 프로필의 코인 정보도 갱신
       try {
@@ -182,6 +181,10 @@ export default function MyPage() {
       } catch (error) {
         console.error("코인 정보 갱신 실패:", error);
       }
+      
+      // 서버에서 최신 데이터 가져오기
+      await queryClient.invalidateQueries({ queryKey: ['/orders'] });
+      await queryClient.invalidateQueries({ queryKey: ['/auth/me'] });
       
       toast({
         title: "주문이 취소되었습니다",
