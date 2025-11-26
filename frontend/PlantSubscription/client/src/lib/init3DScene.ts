@@ -422,7 +422,22 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
       if (baseKey === 'flower_vase') return false;
       if (selectedCfg?.onlyOnSideboard) return baseKey === 'sideboard';
       if (PLANT_STAND_KEYS.has(selectedKey)) return false;
-      if (PLANT_STAND_KEYS.has(baseKey)) return isPlantModelKey(selectedKey);
+      if (PLANT_STAND_KEYS.has(baseKey)) {
+        if (!isPlantModelKey(selectedKey)) return false; 
+      }
+      const placedItems: THREE.Object3D[] = obj.userData.placedItems || [];
+      if (isPlantModelKey(selectedKey)) {
+        const hasPlant = placedItems.some(item => item !== excludeObj && isPlantModelKey(item.userData.modelKey));
+        if (hasPlant) return false;
+      }
+      if (selectedKey === 'television') {
+        const hasTV = placedItems.some(item => item !== excludeObj && item.userData.modelKey === 'television');
+        if (hasTV) return false;
+      }
+      if (selectedKey === 'flower_vase') {
+        const hasVase = placedItems.some(item => item !== excludeObj && item.userData.modelKey === 'flower_vase');
+        if (hasVase) return false;
+      }
       if (isPlantModelKey(selectedKey)) return baseCfg.canPlaceOn || false;
       return baseCfg.canPlaceOn || false;
     });
@@ -487,7 +502,7 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
       let minDist = Infinity;
       placeableFurniture.forEach((obj) => {
         const dist = selected!.position.distanceTo(obj.position);
-        if (dist < minDist && dist < 3) {
+        if (dist < minDist && dist < 1.2) {
           minDist = dist;
           baseObj = obj;
         }
@@ -621,7 +636,7 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
           let minDist = Infinity;
           placeableFurniture.forEach((obj) => {
             const dist = selected!.position.distanceTo(obj.position);
-            if (dist < minDist && dist < 3) {
+            if (dist < minDist && dist < 1.2) {
               minDist = dist;
               baseObj = obj;
             }
@@ -655,7 +670,17 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
       if (hits.length) {
         let obj: any = hits[0].object;
         while (obj && !draggable.includes(obj)) obj = obj.parent;
+        
         if (obj) {
+          if (obj.userData.placedOn) {
+            const baseObj = obj.userData.placedOn;
+            if (baseObj.userData.placedItems) {
+              const idx = baseObj.userData.placedItems.indexOf(obj);
+              if (idx !== -1) {
+                baseObj.userData.placedItems.splice(idx, 1);
+              }
+            }
+          }
           const placedItems = obj.userData?.placedItems;
           if (placedItems && placedItems.length > 0) {
             placedItems.forEach((item: THREE.Object3D) => {
@@ -673,6 +698,7 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
       }
       return;
     }
+
     if (e.button === 0) {
       const now = Date.now();
       if (now - lastClickTime < 300) return;
