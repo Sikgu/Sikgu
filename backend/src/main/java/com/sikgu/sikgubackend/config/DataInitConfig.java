@@ -609,7 +609,7 @@ public class DataInitConfig {
                     .build();
 
             Model3D euphorbiaTrigonaModel = Model3D.builder()
-                    .name("euphoria_trigona")
+                    .name("euphorbia_trigona")
                     .modelingURL("/models/dynamic/big/Euphorbia_Trigona.glb")
                     .height(5.0)
                     .build();
